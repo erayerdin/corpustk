@@ -1,0 +1,1 @@
+Corpus Toolkit is a corpus management tool for linguistic purposes.
