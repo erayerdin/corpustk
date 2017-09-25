@@ -2,11 +2,8 @@ package com.erayerdin.corpustk;
 
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.harawata.appdirs.AppDirs;
-import net.harawata.appdirs.AppDirsFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -26,9 +23,9 @@ public class AppMeta {
     @Getter private final static String artifactID = "corpustk";
 
     @Getter private final static int majorVersion = 0;
-    @Getter private final static int minorVersion = 1;
+    @Getter private final static int minorVersion = 2;
     @Getter private final static int patchVersion = 0;
-    @Getter private final static Status versionStatus = Status.ALPHA;
+    @Getter private final static Status versionStatus = Status.SNAPSHOT;
 
     @Getter private static HashMap<String, String[]> contributors = initContributors();
     @Getter private static String description = initDescription();
@@ -83,10 +80,25 @@ public class AppMeta {
         log.debug("Reading description file...");
         String desc = null;
         try {
-            desc = new String(Files.readAllBytes(Paths.get("DESCRIPTION.txt")));
+            // https://www.java2blog.com/read-file-from-resources-folder-in-java/
+            ClassLoader classLoader = AppMeta.class.getClassLoader();
+            File file = new File(classLoader.getResource("DESCRIPTION.txt").getFile());
+            FileInputStream fileInStream = new FileInputStream(file);
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(fileInStream));
+            StringBuilder builder = new StringBuilder();
+
+            String line;
+
+            while ((line = buffer.readLine()) != null) {
+                builder.append(line+"\n");
+            }
+
+            buffer.close();
+            fileInStream.close();
+
+            desc = builder.toString();
         } catch (IOException e) {
-            log.debug("An error occured while reading description file...");
-            log.debug(e.getMessage());
+            log.error("An error occured while reading description file...", e);
         }
         return desc;
     }
@@ -95,9 +107,25 @@ public class AppMeta {
         log.debug("Reading license file...");
         String lcs = null;
         try {
-            lcs = new String(Files.readAllBytes(Paths.get("LICENSE.txt")));
+            // https://www.java2blog.com/read-file-from-resources-folder-in-java/
+            ClassLoader classLoader = AppMeta.class.getClassLoader();
+            File file = new File(classLoader.getResource("LICENSE.txt").getFile());
+            FileInputStream fileInStream = new FileInputStream(file);
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(fileInStream));
+            StringBuilder builder = new StringBuilder();
+
+            String line;
+
+            while ((line = buffer.readLine()) != null) {
+                builder.append(line);
+            }
+
+            buffer.close();
+            fileInStream.close();
+
+            lcs = builder.toString();
         } catch (IOException e) {
-            log.debug("An error occured while reading license file...");
+            log.error("An error occured while reading license file...", e);
         }
         return lcs;
     }

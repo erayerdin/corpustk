@@ -1,52 +1,40 @@
 package com.erayerdin.corpustk;
 
-import com.erayerdin.corpustk.core.corpus.Corpus;
-import com.erayerdin.corpustk.core.corpus.TextInstance;
-import com.erayerdin.corpustk.core.graphology.GraphSetInstance;
-import com.erayerdin.corpustk.scenes.MainScene;
+import com.erayerdin.corpustk.models.graphology.GraphSet;
+import com.erayerdin.corpustk.views.MainView;
+import com.erayerdin.corpustk.views.SplashView;
+import com.erayerdin.corpustk.views.View;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
-import net.harawata.appdirs.AppDirs;
-import net.harawata.appdirs.AppDirsFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 
 @Log4j2
 public class App extends Application {
-    private static Stage stage;
-    private static AppDirs appDirs = AppDirsFactory.getInstance();
-    private static String userDataString = appDirs.getUserDataDir(AppMeta.getMachineReadableLabel(), "1", "erayerdin");
-    @Getter private static File userDataDir = new File(userDataString);
-    @Getter private static File graphsetDir = new File(userDataString, "graphsets");
-
-    @Getter private static GraphSetInstance[] graphSetInstances;
-    @Getter private static GraphSetInstance currentGraphSetInstance;
-
-    @Getter @Setter private static SimpleObjectProperty<Corpus> corpusObj = new SimpleObjectProperty<>(null);
-    @Getter @Setter private static ObservableList<TextInstance> textInstances;
-    @Getter @Setter private static File corpusFile;
+    @Getter @Setter private static Stage focalStage;
+    @Getter @Setter private static ObservableList<GraphSet> graphSetsAvailable;
 
     public App() {
         super();
-        // Create User Directory
-        log.debug("Creating user directory...");
-        App.userDataDir.mkdirs();
-        App.graphsetDir.mkdirs();
+    }
+
+    private void loadGraphSetsAvailable() {
+        log.debug("Loading available GraphSets...");
+        // TODO load graphsets here
+    }
+
+    private void preload() {
+        log.debug("Preloading resources...");
+        // TODO preloading section
     }
 
     public static void main( String[] args ) {
@@ -57,94 +45,43 @@ public class App extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.preload();
 
-        setStage(primaryStage);
-        log.debug("Loading FXML file and setting up new scene...");
-        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("fxml/SplashScreen.fxml"));
-        Scene scene = new Scene(root, 1920/2, 1080/2);
+        focalStage = primaryStage;
+        focalStage.getIcons().add(new Image("img/icon-128.png"));
+        focalStage.setTitle("Loading...");
 
-        log.debug("Decorating splash screen...");
-        this.getStage().setResizable(false);
-        this.getStage().initStyle(StageStyle.UNDECORATED);
+        SplashView splashView = new SplashView();
+        if (splashView.isDecorated() == false)
+            focalStage.initStyle(StageStyle.UNDECORATED);
 
-        log.debug("Setting scene and showing...");
-        this.getStage().setScene(scene);
-        this.getStage().show();
+        Scene splashScene = splashView.createScene();
+        focalStage.setScene(splashScene);
+
+        focalStage.show();
 
         // https://stackoverflow.com/a/29444159
-        log.debug("Pausing 5 seconds...");
+
+        log.debug("Pausing 5 seconds for SplashScreen...");
         PauseTransition pause = new PauseTransition(Duration.seconds(5));
         pause.setOnFinished(e -> {
-            log.debug("Setting main screen...");
+            focalStage.close();
 
-            log.debug("Closing current stage...");
-            App.getStage().close();
-            log.debug("Initializing new stage...");
-            Stage stage = new Stage();
-            log.debug("Injecting new stage to App...");
-            App.setStage(stage);
-
-            MainScene mainScene = null;
+            MainView mainView = new MainView();
+            Scene mainScene = null;
             try {
-                mainScene = new MainScene();
+                mainScene = mainView.createScene();
             } catch (IOException e1) {
-                log.error("An error occured while loading main scene...");
-                log.error(e1.getMessage());
+                log.error(String.format("An error occured while loading %s.", mainView.toString()), e1);
                 System.exit(1);
             }
-
-//            App.getStage().initStyle(StageStyle.DECORATED);
-            App.getStage().setScene(mainScene.getScene());
-            App.getStage().setTitle(mainScene.getTitle());
-            App.getStage().show();
+            focalStage = new Stage();
+            focalStage.setScene(mainScene);
+            focalStage.setTitle(mainView.getTitle());
+            focalStage.show();
         });
         pause.play();
     }
 
     public void stop() throws Exception {
         log.debug("Exiting application...");
-    }
-
-    public static Stage getStage() {
-        return stage;
-    }
-
-    public static void setStage(Stage stage) {
-        App.stage = stage;
-    }
-
-    public static Corpus getCorpusObj() {
-        return corpusObj.get();
-    }
-
-    public static SimpleObjectProperty<Corpus> corpusObjProperty() {
-        return corpusObj;
-    }
-
-    public static void setCorpusObj(Corpus corpusObj) {
-        App.corpusObj.set(corpusObj);
-    }
-
-    private void preload() throws IOException, ClassNotFoundException {
-        log.debug("##############");
-        log.debug("# Preloading #");
-        log.debug("##############");
-        // Loading GraphSetInstances
-        this.loadGraphSetInstances();
-    }
-
-    private void loadGraphSetInstances() throws IOException, ClassNotFoundException {
-        log.debug("Loading GraphSetInstances...");
-
-        File[] gsetFiles = getGraphsetDir().listFiles();
-        GraphSetInstance[] gsetInstances = new GraphSetInstance[gsetFiles.length];
-
-        for (int i=0 ; i < gsetFiles.length ; i++) {
-            File f = gsetFiles[i];
-            log.debug(String.format("Processing gset file: %s", f.getAbsolutePath()));
-            GraphSetInstance gsetInstance = GraphSetInstance.load(f);
-            gsetInstances[i] = gsetInstance;
-        }
-
-        App.graphSetInstances = gsetInstances;
     }
 }

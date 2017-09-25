@@ -7,8 +7,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="540.0" prefWidth="960.0" style="-fx-background-color: #304ffe;" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="540.0" prefWidth="960.0" style="-fx-background-color: #4F628E;" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.erayerdin.corpustk.controllers.SplashController">
    <children>
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="10.0" layoutX="265.0" layoutY="265.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="700.0" />
       <Text fill="WHITE" layoutX="271.0" layoutY="246.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Corpus Toolkit">
@@ -26,9 +25,9 @@
             <Image url="@../img/logo-256.png" />
          </image>
       </ImageView>
-      <Text fx:id="metaText" fill="WHITE" layoutX="894.0" layoutY="521.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Metatext" textAlignment="RIGHT">
+      <Text fx:id="metaText" fill="WHITE" layoutX="14.0" layoutY="523.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Metatext" textAlignment="RIGHT">
          <font>
-            <Font name="Lato Bold" size="13.0" />
+            <Font name="Lato Bold" size="11.0" />
          </font>
       </Text>
    </children>

@@ -2,17 +2,16 @@ package com.erayerdin.corpustk.controllers;
 
 import com.erayerdin.corpustk.AppMeta;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import lombok.extern.log4j.Log4j2;
 
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 @Log4j2
-public class AboutController implements Initializable {
+public class AboutController extends Controller {
 
     @FXML
     private Label humanReadableLabel;
@@ -40,37 +39,32 @@ public class AboutController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        log.debug("Initializing AboutController components...");
+        log.debug(String.format("Initializing %s...", this.getClass().getName()));
+
         this.humanReadableLabel.setText(AppMeta.getHumanReadableLabel());
         this.machineReadableLabel.setText(AppMeta.getMachineReadableLabel());
         this.groupID.setText(AppMeta.getGroupID());
         this.artifactID.setText(AppMeta.getArtifactID());
         this.version.setText(AppMeta.generateVersionString());
-        this.contributorsTextArea.setText(AboutController.generateContibutorsString());
+        this.contributorsTextArea.setText(this.generateContributorsString());
         this.licenseTextArea.setText(AppMeta.getLicense());
         this.descriptionTextArea.setText(AppMeta.getDescription());
     }
 
-    private static String generateContibutorsString() {
-        log.debug("Getting contributors and creating StringBuilder...");
-        HashMap<String, String[]> contributors = AppMeta.getContributors();
-        StringBuilder mainBuilder = new StringBuilder();
+    private String generateContributorsString() {
+        log.debug("Generating contributor string...");
+        StringBuilder sb = new StringBuilder();
 
-        contributors.forEach((k,v) -> {
-            log.debug("Processing contributor: "+k);
-            StringBuilder contBuilder = new StringBuilder();
-            contBuilder.append(k+":\n");
+        for (Map.Entry<String, String[]> entry : AppMeta.getContributors().entrySet()) {
+            sb.append(entry.getKey()+":\n");
 
-            for (String c : v) {
-                log.debug("Processing contribution: "+c);
-                contBuilder.append(" - "+c+"\n");
+            for (String c : entry.getValue()) {
+                sb.append(" - "+c+"\n");
             }
-            contBuilder.append("\n");
 
-            log.debug("Appending to main StringBuilder");
-            mainBuilder.append(contBuilder.toString());
-        });
+            sb.append("\n");
+        }
 
-        return mainBuilder.toString().trim();
+        return sb.toString();
     }
 }
