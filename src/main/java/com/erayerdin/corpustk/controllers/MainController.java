@@ -1,6 +1,9 @@
 package com.erayerdin.corpustk.controllers;
 
+import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.views.AboutView;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -99,14 +102,53 @@ public class MainController extends Controller {
     // Model Fields //
     //////////////////
 
+    private ObjectProperty<Corpus> corpusInstance;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         log.debug(String.format("Initializing %s...", this.getClass().getName()));
+
+        this.corpusInstance = new SimpleObjectProperty<>(null);
+        this.corpusInstanceListeners();
     }
 
     ///////////////////
     // Model Methods //
     ///////////////////
+
+    private void corpusInstanceListeners() {
+        log.debug("Adding listeners for corpus instance...");
+        this.corpusInstance.addListener((prop, oldVal, newVal) -> {
+            if (newVal == null)
+                this.disableCorpusInstanceListeners(true);
+            else
+                this.disableCorpusInstanceListeners(false);
+        });
+    }
+
+    private void disableCorpusInstanceListeners(boolean disabled) {
+        log.debug(String.format("Setting corpus instance listener elements to %s", Boolean.toString(disabled)));
+
+        // View
+        this.saveCorpusPackageButton.setDisable(disabled);
+        this.importTextButton.setDisable(disabled);
+        this.graphSetChoiceBox.setDisable(disabled);
+        this.exportAsTable.setDisable(disabled);
+        this.textFilterQueryTextField.setDisable(disabled);
+        this.textFilterTypeChoiceBox.setDisable(disabled);
+        this.textFilterButton.setDisable(disabled);
+        this.textFilterResetButton.setDisable(disabled);
+        this.ngramQueryTextField.setDisable(disabled);
+        this.ngramTypeChoiceBox.setDisable(disabled);
+        this.ngramQueryTypeChoiceBox.setDisable(disabled);
+        this.ngramSearchButton.setDisable(disabled);
+        this.resetNgramButton.setDisable(disabled);
+        this.ngramsTableView.setDisable(disabled);
+
+        // Menu Elements
+        this.saveCorpusPackageMenuItem.setDisable(disabled);
+        this.saveCorpusPackageAsMenuItem.setDisable(disabled);
+    }
 
     ///////////////////////////
 
