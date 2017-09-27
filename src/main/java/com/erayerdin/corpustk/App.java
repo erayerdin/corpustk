@@ -15,13 +15,19 @@ import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import net.harawata.appdirs.AppDirs;
+import net.harawata.appdirs.AppDirsFactory;
 
 import java.io.IOException;
 
 @Log4j2
 public class App extends Application {
     @Getter @Setter private static Stage focalStage;
-    @Getter @Setter private static ObservableList<GraphSet> graphSetsAvailable;
+    @Getter private static String userDataDir = AppDirsFactory.getInstance().getUserDataDir(
+            AppMeta.getMachineReadableLabel(),
+            "1",
+            (String) AppMeta.getContributors().keySet().toArray()[0]
+    );
 
     public App() {
         super();
@@ -84,4 +90,6 @@ public class App extends Application {
     public void stop() throws Exception {
         log.debug("Exiting application...");
     }
+
+    // TODO write a graphSet loader
 }

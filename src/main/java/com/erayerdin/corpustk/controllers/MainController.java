@@ -3,6 +3,7 @@ package com.erayerdin.corpustk.controllers;
 import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.AboutView;
+import com.erayerdin.corpustk.views.CreateCorpusPackageView;
 import com.erayerdin.linglib.corpus.Query;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -22,6 +23,8 @@ import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
@@ -107,15 +110,15 @@ public class MainController extends Controller {
     // Model Fields //
     //////////////////
 
-    private ObjectProperty<Corpus> corpusInstance;
+    private static ObjectProperty<Corpus> corpusInstance;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         log.debug(String.format("Initializing %s...", this.getClass().getName()));
 
-        this.corpusInstance = new SimpleObjectProperty<>(null);
+        corpusInstance = new SimpleObjectProperty<>(null);
 
-        this.corpusInstance.addListener((prop, oldVal, newVal) -> {
+        corpusInstance.addListener((prop, oldVal, newVal) -> {
             if (newVal != null) {
                 log.debug("Corpus initialized. Adding listeners...");
                 this.disableCorpusInstanceListeners(false);
@@ -149,7 +152,7 @@ public class MainController extends Controller {
         };
 
         try {
-            this.corpusInstance.get().getQueries().addListener(queryListener);
+            corpusInstance.get().getQueries().addListener(queryListener);
         } catch (NullPointerException e) {
             log.warn("Corpus is null. Cannot listen queries.");
         }
@@ -177,7 +180,7 @@ public class MainController extends Controller {
 
         try {
             // adding listener to textsListView
-            this.corpusInstance.get().getFilteredTexts().addListener(filteredTextListener);
+            corpusInstance.get().getFilteredTexts().addListener(filteredTextListener);
         } catch (NullPointerException e) {
             log.warn("Corpus is null. Cannot listen filtered texts.", e);
         }
@@ -207,6 +210,18 @@ public class MainController extends Controller {
         // Menu Elements
         this.saveCorpusPackageMenuItem.setDisable(disabled);
         this.saveCorpusPackageAsMenuItem.setDisable(disabled);
+    }
+
+    public static Corpus getCorpusInstance() {
+        return corpusInstance.get();
+    }
+
+    public static ObjectProperty<Corpus> corpusInstanceProperty() {
+        return corpusInstance;
+    }
+
+    public static void setCorpusInstance(Corpus corpusInstance) {
+        MainController.corpusInstance.set(corpusInstance);
     }
 
     ///////////////////////////
@@ -252,7 +267,22 @@ public class MainController extends Controller {
 
     @FXML
     void newCorpusPackage(ActionEvent event) {
+        CreateCorpusPackageView createCorpusPackageView = new CreateCorpusPackageView();
+        Scene createCorpusPackageScene = null;
 
+        try {
+            createCorpusPackageScene = createCorpusPackageView.createScene();
+        } catch (IOException e) {
+            log.error(String.format("An error occured while loading %s.", createCorpusPackageView.getTitle()), e);
+            System.exit(1);
+        }
+
+        Stage createCorpusPackageStage = new Stage();
+        createCorpusPackageStage.setScene(createCorpusPackageScene);
+        createCorpusPackageStage.setTitle(createCorpusPackageView.getTitle());
+        createCorpusPackageStage.setResizable(false);
+        createCorpusPackageStage.initModality(Modality.APPLICATION_MODAL);
+        createCorpusPackageStage.show(); // TODO get data from this stage
     }
 
     @FXML

@@ -2,7 +2,7 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%-5level %logger{36}::%method - %msg%n}{FATAL=white, ERROR=red, WARN=blue, INFO=black, DEBUG=green, TRACE=blue}"/>
+            <PatternLayout pattern="%highlight{%-5level %logger{36}::%method - %msg%n}{FATAL=white, ERROR=red, WARN=blue, INFO=black, DEBUG=green, TRACE=blue}"/>
         </Console>
         <File name="LogFile" fileName="debug.log" append="false">
             <PatternLayout pattern="%-5level %logger{36}::%method - %msg%n"/>
