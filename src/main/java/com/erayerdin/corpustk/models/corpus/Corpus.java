@@ -2,12 +2,15 @@ package com.erayerdin.corpustk.models.corpus;
 
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
+import com.erayerdin.linglib.corpus.Query;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
@@ -20,7 +23,9 @@ public class Corpus implements Model {
     private ObservableList<Text> texts;
     private ObjectProperty<GraphSet> graphSet;
 
-    private transient ObservableList<Text> filteredTexts;
+    @Getter private transient ObservableList<Text> filteredTexts;
+    @Getter private transient ObservableList<Query> queries;
+    @Getter @Setter private transient File fileOnDisk;
 
     public Corpus() {}
 
@@ -31,6 +36,8 @@ public class Corpus implements Model {
 
         this.filteredTexts = FXCollections.observableArrayList();
         log.debug(String.format("Created %s.", this.toString()));
+
+        this.fileOnDisk = null;
     }
 
     public void createListeners() {
@@ -72,14 +79,6 @@ public class Corpus implements Model {
 
     public void setGraphSet(GraphSet graphSet) {
         this.graphSet.set(graphSet);
-    }
-
-    public ObservableList<Text> getFilteredTexts() {
-        return filteredTexts;
-    }
-
-    public void setFilteredTexts(ObservableList<Text> filteredTexts) {
-        this.filteredTexts = filteredTexts;
     }
 
     @Override

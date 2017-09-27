@@ -1,9 +1,14 @@
 package com.erayerdin.corpustk.controllers;
 
 import com.erayerdin.corpustk.models.corpus.Corpus;
+import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.AboutView;
+import com.erayerdin.linglib.corpus.Query;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -81,7 +86,7 @@ public class MainController extends Controller {
     private Button resetNgramButton;
 
     @FXML
-    private TableView<?> ngramsTableView;
+    private TableView<Query> ngramsTableView;
 
     @FXML
     private TextField textFilterQueryTextField;
@@ -96,7 +101,7 @@ public class MainController extends Controller {
     private ChoiceBox<?> textFilterTypeChoiceBox;
 
     @FXML
-    private ListView<?> textsListView;
+    private ListView<Text> textsListView;
 
     //////////////////
     // Model Fields //
@@ -109,22 +114,76 @@ public class MainController extends Controller {
         log.debug(String.format("Initializing %s...", this.getClass().getName()));
 
         this.corpusInstance = new SimpleObjectProperty<>(null);
-        this.corpusInstanceListeners();
+
+        this.corpusInstance.addListener((prop, oldVal, newVal) -> {
+            if (newVal != null) {
+                log.debug("Corpus initialized. Adding listeners...");
+                this.disableCorpusInstanceListeners(false);
+                this.filteredTextListeners();
+                this.queryListener();
+            } else {
+                log.debug("Corpus is null. Disabling UI...");
+                this.disableCorpusInstanceListeners(true);
+            }
+        });
     }
 
     ///////////////////
     // Model Methods //
     ///////////////////
 
-    private void corpusInstanceListeners() {
-        log.debug("Adding listeners for corpus instance...");
-        this.corpusInstance.addListener((prop, oldVal, newVal) -> {
-            if (newVal == null)
-                this.disableCorpusInstanceListeners(true);
-            else
-                this.disableCorpusInstanceListeners(false);
-        });
+    //// Listeners ////
+    private void queryListener() {
+        log.debug("Adding listeners for queries...");
+
+        ListChangeListener queryListener = new ListChangeListener() {
+            @Override
+            public void onChanged(Change c) {
+                ObservableList<Query> queries = c.getList();
+                ngramsTableView.getItems().clear();
+
+                log.debug("Query found. Updating query table view to queries.");
+                // TODO implement how the table will look like
+                ngramsTableView.getItems().addAll(queries);
+            }
+        };
+
+        try {
+            this.corpusInstance.get().getQueries().addListener(queryListener);
+        } catch (NullPointerException e) {
+            log.warn("Corpus is null. Cannot listen queries.");
+        }
     }
+
+    private void filteredTextListeners() {
+        log.debug("Adding listeners for filtered texts...");
+
+        ListChangeListener filteredTextListener = new ListChangeListener() {
+            @Override
+            public void onChanged(Change c) {
+                ObservableList<Text> filteredTexts = c.getList();
+                textsListView.getItems().clear();
+
+                // if there are filtered texts
+                if (!filteredTexts.isEmpty()) {
+                    log.debug("Filtered texts found. Updating text list view to filtered texts.");
+                    textsListView.getItems().setAll(filteredTexts);
+                } else {
+                    log.debug("Filtered texts got reset. Updating text list view to corpus texts.");
+                    textsListView.getItems().setAll(corpusInstance.get().getTexts());
+                }
+            }
+        };
+
+        try {
+            // adding listener to textsListView
+            this.corpusInstance.get().getFilteredTexts().addListener(filteredTextListener);
+        } catch (NullPointerException e) {
+            log.warn("Corpus is null. Cannot listen filtered texts.", e);
+        }
+    }
+
+    //// Other Methods ////
 
     private void disableCorpusInstanceListeners(boolean disabled) {
         log.debug(String.format("Setting corpus instance listener elements to %s", Boolean.toString(disabled)));
@@ -203,7 +262,7 @@ public class MainController extends Controller {
 
     @FXML
     void quit(ActionEvent event) {
-
+        Platform.exit();
     }
 
     @FXML
