@@ -1,6 +1,7 @@
 package com.erayerdin.corpustk.controllers;
 
 import com.erayerdin.corpustk.Utils;
+import com.erayerdin.corpustk.core.listcells.GraphSetListCell;
 import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
 import javafx.event.ActionEvent;
@@ -40,17 +41,13 @@ public class CreateCorpusPackageController extends Controller implements Form {
         // load graphsets
         GraphSet[] graphSets = Utils.loadGraphSets();
         this.graphSetListView.getItems().addAll(graphSets);
-        this.graphSetListView.setCellFactory(param -> new ListCell<GraphSet>() {
-            @Override
-            protected void updateItem(GraphSet item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(item.getTitle()); // set title of graphsets
-            }
-        });
+        this.graphSetListView.setCellFactory(param -> new GraphSetListCell());
+        this.graphSetListView.getSelectionModel().selectFirst();
     }
 
-    public void validateForm() {
+    public boolean validateForm() {
         log.debug(String.format("Validating %s...", getClass().getName()));
+        boolean isValid = true;
 
         if (!(this.corpusPackageTitleTextField.getText().isEmpty()
                 && this.pathTextField.getText().isEmpty())) { // if not valid
@@ -61,7 +58,11 @@ public class CreateCorpusPackageController extends Controller implements Form {
             error.setHeaderText("Form is invalid.");
             error.setContentText("Corpus Package Title and Path shouldn't be empty.");
             error.showAndWait();
+            isValid = false;
+            return isValid;
         }
+
+        return isValid;
     }
 
     @FXML
@@ -93,7 +94,10 @@ public class CreateCorpusPackageController extends Controller implements Form {
     @FXML
     void createCorpusPackage(ActionEvent event) {
         log.debug("Creating corpus object...");
-        this.validateForm();
+        boolean isValid = this.validateForm(); // TODO problem on validation
+        // oddly throwing invalidation for form
+
+        if (!isValid) return;
 
         Corpus corpus = new Corpus(
                 this.corpusPackageTitleTextField.getText(),
@@ -102,6 +106,7 @@ public class CreateCorpusPackageController extends Controller implements Form {
         corpus.setFileOnDisk(new File(this.pathTextField.getText()));
 
         MainController.setCorpusInstance(corpus);
+        this.getStage(event).close();
     }
 
 }

@@ -4,6 +4,7 @@ import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.AboutView;
 import com.erayerdin.corpustk.views.CreateCorpusPackageView;
+import com.erayerdin.corpustk.views.CreateGraphSetView;
 import com.erayerdin.linglib.corpus.Query;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -247,7 +248,22 @@ public class MainController extends Controller {
 
     @FXML
     void addGraphSet(ActionEvent event) {
+        CreateGraphSetView gsView = new CreateGraphSetView();
+        Scene gsScene = null;
 
+        try {
+            gsScene = gsView.createScene();
+        } catch (IOException e) {
+            log.error("An error occured while loading CreateGraphSetView.", e);
+            System.exit(1);
+        }
+
+        Stage gsStage = new Stage();
+        gsStage.setTitle(gsView.getTitle());
+        gsStage.setScene(gsScene);
+        gsStage.setResizable(false);
+        gsStage.initModality(Modality.APPLICATION_MODAL);
+        gsStage.show();
     }
 
     @FXML
