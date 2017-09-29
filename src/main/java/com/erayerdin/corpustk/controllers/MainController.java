@@ -122,6 +122,10 @@ public class MainController extends Controller {
         corpusInstance.addListener((prop, oldVal, newVal) -> {
             if (newVal != null) {
                 log.debug("Corpus initialized. Adding listeners...");
+
+                // change title
+                this.getStage().setTitle("Corpus Toolkit - "+newVal.getTitle());
+
                 this.disableCorpusInstanceListeners(false);
 //                this.textListener();
 //                this.filteredTextListeners();
@@ -129,6 +133,8 @@ public class MainController extends Controller {
                 this.textsListView.setItems(getCorpusInstance().getTexts()); // ?
             } else {
                 log.debug("Corpus is null. Disabling UI...");
+                this.getStage().setTitle("Corpus Toolkit");
+
                 this.textsListView.getItems().clear();
                 this.disableCorpusInstanceListeners(true);
             }
@@ -294,6 +300,11 @@ public class MainController extends Controller {
         MainController.corpusInstance.set(corpusInstance);
     }
 
+    public Stage getStage() {
+        Stage stage = (Stage) this.resetNgramButton.getScene().getWindow();
+        return stage;
+    }
+
     ///////////////////////////
 
     @FXML
@@ -393,7 +404,7 @@ public class MainController extends Controller {
     @FXML
     void newCorpusPackage(ActionEvent event) {
         boolean r = this.corpusExistsAlert();
-        if (r) return;
+        if (r) return; // TODO patch here
 
         CreateCorpusPackageView createCorpusPackageView = new CreateCorpusPackageView();
         Scene createCorpusPackageScene = null;
@@ -416,7 +427,7 @@ public class MainController extends Controller {
     @FXML
     void openCorpusPackage(ActionEvent event) {
         boolean r = this.corpusExistsAlert();
-        if (r) return;
+        if (r) return; // TODO patch here
 
         log.debug("Opening corpus package...");
 
@@ -478,7 +489,19 @@ public class MainController extends Controller {
 
     @FXML
     void saveCorpusPackage(ActionEvent event) {
+        log.debug("Serializing current corpus instance to a file...");
 
+        try {
+            Model.save(getCorpusInstance(), getCorpusInstance().getFileOnDisk());
+        } catch (IOException e) {
+            log.error("An error occured while serializing corpus instance to a file.");
+            Utils.generateErrorAlert(
+                    "Could Not Be Saved",
+                    "Corpus package could not be saved.",
+                    "Please make sure your disk is not damaged or you have permissions to save to the current path."
+            );
+            return;
+        }
     }
 
     @FXML

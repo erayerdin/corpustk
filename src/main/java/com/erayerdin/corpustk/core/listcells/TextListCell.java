@@ -17,7 +17,7 @@ public class TextListCell extends ListCell<Text> {
             log.warn("Item is empty. Setting text to null...");
             this.setText(null);
         } else {
-            this.setText(text.getContent().trim().substring(0, 30)+"...");
+            this.setText(text.getContent().trim().replaceAll("\n", "").substring(0, 30)+"...");
 
             // Build Tooltip
             if (!text.getTags().isEmpty()) {
