@@ -1,5 +1,8 @@
 package com.erayerdin.corpustk.controllers;
 
+import com.erayerdin.corpustk.Utils;
+import com.erayerdin.corpustk.core.listcells.TextListCell;
+import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.AboutView;
@@ -13,23 +16,20 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.Window;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
+import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 @Log4j2
@@ -123,6 +123,7 @@ public class MainController extends Controller {
             if (newVal != null) {
                 log.debug("Corpus initialized. Adding listeners...");
                 this.disableCorpusInstanceListeners(false);
+                this.textListener();
                 this.filteredTextListeners();
                 this.queryListener();
             } else {
@@ -130,6 +131,20 @@ public class MainController extends Controller {
                 this.disableCorpusInstanceListeners(true);
             }
         });
+
+        this.textsListView.setCellFactory(param -> new TextListCell());
+        this.initializeKeyCombinations();
+    }
+
+    public void initializeKeyCombinations() {
+        log.debug("Initializing key combinations...");
+
+        this.newCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
+        this.openCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
+        this.saveCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
+        this.addGraphSetMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.G, KeyCombination.CONTROL_DOWN));
+        this.quitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
+        this.aboutMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F1));
     }
 
     ///////////////////
@@ -156,6 +171,29 @@ public class MainController extends Controller {
             corpusInstance.get().getQueries().addListener(queryListener);
         } catch (NullPointerException e) {
             log.warn("Corpus is null. Cannot listen queries.");
+        }
+    }
+
+    private void textListener() {
+        log.debug("Adding listeners for main texts...");
+
+        ListChangeListener textListener = new ListChangeListener() {
+            @Override
+            public void onChanged(Change c) {
+                if (getCorpusInstance().getFilteredTexts().isEmpty()) {
+                    log.debug("Filtered texts is empty. Updating Texts ListView to main texts...");
+                    textsListView.getItems().addAll(getCorpusInstance().getTexts());
+                } else {
+                    log.warn("Filtered texts is not empty. Cannot update Texts ListView with main texts...");
+                }
+            }
+        };
+
+        try {
+            // adding listener to main texts
+            corpusInstance.get().getTexts().addListener(textListener);
+        } catch (NullPointerException e) {
+            log.warn("Corpus is null. Cannot listen main texts.", e);
         }
     }
 
@@ -211,6 +249,32 @@ public class MainController extends Controller {
         // Menu Elements
         this.saveCorpusPackageMenuItem.setDisable(disabled);
         this.saveCorpusPackageAsMenuItem.setDisable(disabled);
+    }
+
+    public boolean corpusExistsAlert() {
+        log.debug("Checking if corpus already opened...");
+
+        boolean r = false;
+
+        if (getCorpusInstance() != null) {
+            log.warn("Corpus is already opened. Creating confirmation alert...");
+
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Corpus Already Opened");
+            alert.setHeaderText("A corpus file is already opened.");
+            alert.getDialogPane().setContent(new Label("Do you wish to proceed? If you click OK, then you might lose changes on your current corpus package."));
+
+            Optional<ButtonType> result = alert.showAndWait();
+
+            if (result.get() == ButtonType.OK) {
+                log.warn("User decided to overwrite Corpus instance.");
+                r = true;
+            } else {
+                log.warn("User decided to keep Corpus instance.");
+            }
+        }
+
+        return r;
     }
 
     public static Corpus getCorpusInstance() {
@@ -278,11 +342,54 @@ public class MainController extends Controller {
 
     @FXML
     void importText(ActionEvent event) {
+        log.debug("Importing texts...");
 
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Text File", "*.txt");
+        fileChooser.getExtensionFilters().add(ext);
+        List<File> files = fileChooser.showOpenMultipleDialog(this.getWindow(event));
+
+        if (!files.isEmpty()) {
+            files.stream()
+                    .forEach(f -> {
+                        StringBuilder sb = new StringBuilder();
+                        FileReader fr = null;
+
+                        try {
+                            fr = new FileReader(f.getAbsolutePath());
+                        } catch (FileNotFoundException e) {
+                            log.error(e);
+                            return;
+                        }
+
+                        BufferedReader br = new BufferedReader(fr);
+
+                        String line;
+                        try {
+                            while ((line = br.readLine()) != null) {
+                                sb.append(line+"\n");
+                            }
+                        } catch (IOException e) {
+                            log.error(String.format("An error occured while reading a text: %s", f.getAbsolutePath()), e);
+                            return;
+                        }
+
+                        String content = sb.toString();
+
+                        Text text = new Text(content, getCorpusInstance().getGraphSet());
+                        getCorpusInstance().getTexts().add(text);
+                    });
+        } else {
+            log.warn("No text file selected.");
+            return;
+        }
     }
 
     @FXML
     void newCorpusPackage(ActionEvent event) {
+        boolean r = this.corpusExistsAlert();
+        if (r) return;
+
         CreateCorpusPackageView createCorpusPackageView = new CreateCorpusPackageView();
         Scene createCorpusPackageScene = null;
 
@@ -303,11 +410,52 @@ public class MainController extends Controller {
 
     @FXML
     void openCorpusPackage(ActionEvent event) {
+        boolean r = this.corpusExistsAlert();
+        if (r) return;
 
+        log.debug("Opening corpus package...");
+
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Corpus Package", "*.crp");
+        File file = fileChooser.showOpenDialog(this.getWindow(event));
+
+        if (file != null) {
+            Corpus corpus = null;
+
+            try {
+                corpus = (Corpus) Model.load(file);
+            } catch (IOException e) {
+                log.error("An error occured while loading corpus file...", e);
+
+                Utils.generateErrorAlert(
+                        "Corpus File Invalid",
+                        "Corpus file is not valid.",
+                        "Corpus file is invalid or corrupted."
+                );
+                return;
+            } catch (ClassNotFoundException e) {
+                log.error("An error occured while deserializing corpus file...", e);
+
+                Utils.generateErrorAlert(
+                        "Corpus File Invalid",
+                        "Corpus file is not valid.",
+                        "Corpus file is invalid or deprecated."
+                );
+                return;
+            }
+
+            setCorpusInstance(corpus);
+        } else {
+            log.warn("User didn't choose any corpus file to open.");
+            return;
+        }
     }
 
     @FXML
     void quit(ActionEvent event) {
+        boolean r = this.corpusExistsAlert();
+        if (r) return;
+
         Platform.exit();
     }
 

@@ -2,6 +2,8 @@ package com.erayerdin.corpustk;
 
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.File;
@@ -45,5 +47,20 @@ public class Utils {
                 .toArray(GraphSet[]::new);
 
         return graphSets2;
+    }
+
+    public static void generateErrorAlert(String title, String header, String content) {
+        log.debug("Generating error alert...");
+
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+
+        Label contentLabel = new Label(content);
+        contentLabel.setMaxWidth(300);
+        contentLabel.setWrapText(true);
+        alert.getDialogPane().setContent(contentLabel);
+
+        alert.showAndWait();
     }
 }

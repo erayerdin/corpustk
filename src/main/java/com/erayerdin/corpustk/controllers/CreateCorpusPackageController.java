@@ -6,12 +6,15 @@ import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -38,6 +41,8 @@ public class CreateCorpusPackageController extends Controller implements Form {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        log.debug("Initializing CreateCorpusPackageController...");
+
         // load graphsets
         GraphSet[] graphSets = Utils.loadGraphSets();
         this.graphSetListView.getItems().addAll(graphSets);
@@ -49,8 +54,8 @@ public class CreateCorpusPackageController extends Controller implements Form {
         log.debug(String.format("Validating %s...", getClass().getName()));
         boolean isValid = true;
 
-        if (!(this.corpusPackageTitleTextField.getText().isEmpty()
-                && this.pathTextField.getText().isEmpty())) { // if not valid
+        if (this.corpusPackageTitleTextField.getText().isEmpty()
+                || this.pathTextField.getText().isEmpty()) { // if not valid
             log.error("Form is not valid.");
 
             Alert error = new Alert(Alert.AlertType.ERROR);
@@ -70,6 +75,8 @@ public class CreateCorpusPackageController extends Controller implements Form {
         log.debug("Browsing files...");
 
         FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Corpus Packages","*.crp");
+        fileChooser.getExtensionFilters().add(ext);
         File saveFile = fileChooser.showSaveDialog(this.getWindow(event));
 
         if (saveFile == null) {
@@ -103,7 +110,20 @@ public class CreateCorpusPackageController extends Controller implements Form {
                 this.corpusPackageTitleTextField.getText(),
                 this.graphSetListView.getSelectionModel().getSelectedItem()
         );
-        corpus.setFileOnDisk(new File(this.pathTextField.getText()));
+        File file = new File(this.pathTextField.getText());
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            log.error("Could not create corpus file...", e);
+
+            Alert error = new Alert(Alert.AlertType.ERROR);
+            error.setTitle("Could Not Create Corpus File");
+            error.setHeaderText("Corpus File could not be created.");
+            error.setContentText("Please make sure your disk is not damaged or has space.");
+            error.showAndWait();
+            return;
+        }
+        corpus.setFileOnDisk(file);
 
         MainController.setCorpusInstance(corpus);
         this.getStage(event).close();
