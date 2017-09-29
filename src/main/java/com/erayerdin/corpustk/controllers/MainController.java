@@ -123,11 +123,13 @@ public class MainController extends Controller {
             if (newVal != null) {
                 log.debug("Corpus initialized. Adding listeners...");
                 this.disableCorpusInstanceListeners(false);
-                this.textListener();
-                this.filteredTextListeners();
-                this.queryListener();
+//                this.textListener();
+//                this.filteredTextListeners();
+//                this.queryListener();
+                this.textsListView.setItems(getCorpusInstance().getTexts()); // ?
             } else {
                 log.debug("Corpus is null. Disabling UI...");
+                this.textsListView.getItems().clear();
                 this.disableCorpusInstanceListeners(true);
             }
         });
@@ -182,10 +184,12 @@ public class MainController extends Controller {
             public void onChanged(Change c) {
                 if (getCorpusInstance().getFilteredTexts().isEmpty()) {
                     log.debug("Filtered texts is empty. Updating Texts ListView to main texts...");
+                    textsListView.getItems().clear();
                     textsListView.getItems().addAll(getCorpusInstance().getTexts());
                 } else {
                     log.warn("Filtered texts is not empty. Cannot update Texts ListView with main texts...");
                 }
+                System.out.println();
             }
         };
 
@@ -239,6 +243,7 @@ public class MainController extends Controller {
         this.textFilterTypeChoiceBox.setDisable(disabled);
         this.textFilterButton.setDisable(disabled);
         this.textFilterResetButton.setDisable(disabled);
+        this.textsListView.setDisable(disabled);
         this.ngramQueryTextField.setDisable(disabled);
         this.ngramTypeChoiceBox.setDisable(disabled);
         this.ngramQueryTypeChoiceBox.setDisable(disabled);
@@ -461,12 +466,14 @@ public class MainController extends Controller {
 
     @FXML
     void resetFilter(ActionEvent event) {
-
+        log.debug("Resetting filters...");
+        getCorpusInstance().getFilteredTexts().clear();
     }
 
     @FXML
     void resetNgrams(ActionEvent event) {
-
+        log.debug("Resetting table...");
+        getCorpusInstance().getQueries().clear();
     }
 
     @FXML

@@ -27,7 +27,11 @@ public class Corpus implements Model {
     @Getter private transient ObservableList<Query> queries;
     @Getter @Setter private transient File fileOnDisk;
 
-    public Corpus() {}
+    public Corpus() {
+        this.filteredTexts = FXCollections.observableArrayList();
+        this.queries = FXCollections.observableArrayList();
+        this.fileOnDisk = null;
+    }
 
     public Corpus(String title, GraphSet graphSet) {
         this.title = new SimpleStringProperty(title);
@@ -35,9 +39,9 @@ public class Corpus implements Model {
         this.graphSet = new SimpleObjectProperty<>(graphSet);
 
         this.filteredTexts = FXCollections.observableArrayList();
-        log.debug(String.format("Created %s.", this.toString()));
-
+        this.queries = FXCollections.observableArrayList();
         this.fileOnDisk = null;
+        log.debug(String.format("Created %s.", this.toString()));
     }
 
     public void createListeners() {
