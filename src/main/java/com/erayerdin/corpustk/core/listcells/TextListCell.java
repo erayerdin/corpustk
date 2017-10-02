@@ -17,14 +17,20 @@ public class TextListCell extends ListCell<Text> {
             log.warn("Item is empty. Setting text to null...");
             this.setText(null);
         } else {
-            this.setText(text.getContent().trim().replaceAll("\n", "").substring(0, 30)+"...");
+            // Set Initial Text
+            this.setText(this.textShortener(text.getContent()));
 
-            // Build Tooltip
+            // Build Initial Tooltip
             if (!text.getTags().isEmpty()) {
                 Tooltip.install(this, this.buildTooltip(text));
             } else {
                 log.warn("Text does not have tags. Not building tooltip.");
             }
+
+            // Listener
+            text.contentProperty().addListener((prop, oldVal, newVal) -> {
+                setText(this.textShortener(newVal));
+            });
         }
     }
 
@@ -44,5 +50,16 @@ public class TextListCell extends ListCell<Text> {
         Tooltip tooltip = new Tooltip(tooltipString);
 
         return tooltip;
+    }
+
+    private String textShortener(String text) {
+        String str = text.trim()
+                .replaceAll("\n", "");
+
+        if (str.length() > 30) {
+            str = str.substring(0, 27)+"...";
+        }
+
+        return str;
     }
 }

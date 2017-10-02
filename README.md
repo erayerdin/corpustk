@@ -2,7 +2,7 @@
 
 ![](https://img.shields.io/badge/groupId-com.erayerdin-green.svg?style=flat-square)
 ![](https://img.shields.io/badge/artifactId-corpustk-green.svg?style=flat-square)
-![](https://img.shields.io/badge/version-v0.1.0--SNAPSHOT-red.svg?style=flat-square)
+![](https://img.shields.io/badge/version-v0.2.0--SNAPSHOT-red.svg?style=flat-square)
 [![](https://img.shields.io/badge/license-apache--v2-000000.svg?style=flat-square)](LICENSE.txt)
 
 Text management tool for linguistic purposes...

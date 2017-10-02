@@ -17,7 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import java.io.*;
 
 @Log4j2
-@ToString(exclude = {"texts", "graphSet", "filteredTexts"})
+@ToString(exclude = {"texts", "graphSet", "filteredTexts", "queries"})
 public class Corpus implements Model {
     private StringProperty title;
     private ObservableList<Text> texts;
@@ -98,7 +98,7 @@ public class Corpus implements Model {
     public void writeObject(ObjectOutputStream oos) throws IOException {
         log.debug(String.format("Writing (object) %s...", this.toString()));
         oos.writeUTF(this.getTitle()); // Title as UTF
-        oos.writeObject(this.getTextsAsArray()); // Text as Text[]
+        oos.writeObject(new Text[this.getTexts().size()]); // Text as Text[]
         oos.writeObject(this.getGraphSet()); // GraphSet
     }
 
@@ -114,18 +114,7 @@ public class Corpus implements Model {
     public void writeExternal(ObjectOutput out) throws IOException {
         log.debug(String.format("Writing (external) %s...", this.toString()));
         out.writeUTF(this.getTitle());
-        out.writeObject(this.getTextsAsArray());
+        out.writeObject(this.getTexts().toArray(new Text[this.getTexts().size()]));
         out.writeObject(this.getGraphSet());
-    }
-
-    private Text[] getTextsAsArray() {
-        Text[] result = new Text[this.getTexts().size()];
-
-        for (int i=0 ; i < result.length ; i++) {
-            Text currentObj = this.getTexts().get(i);
-            result[i] = currentObj;
-        }
-
-        return result;
     }
 }

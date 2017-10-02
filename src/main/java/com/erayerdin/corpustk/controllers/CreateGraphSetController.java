@@ -1,6 +1,7 @@
 package com.erayerdin.corpustk.controllers;
 
 import com.erayerdin.corpustk.App;
+import com.erayerdin.corpustk.Utils;
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
 import com.erayerdin.corpustk.models.graphology.GraphSetFactory;
@@ -8,7 +9,6 @@ import com.erayerdin.linglib.graphology.GraphemeType;
 import com.erayerdin.linglib.graphology.exceptions.InvalidCharSequenceLengthException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
@@ -61,11 +61,11 @@ public class CreateGraphSetController extends Controller implements Form {
                 || this.lowerCharsTextField.getText().isEmpty()
                 || this.upperCharsTextField.getText().isEmpty()) {
 
-            Alert error = new Alert(Alert.AlertType.ERROR);
-            error.setTitle("Invalid Form");
-            error.setHeaderText("Form is invalid.");
-            error.setContentText("GraphSet title, lower chars and upper chars shouldn't be empty.");
-            error.showAndWait();
+            Utils.generateErrorAlert(
+                    "Invalid Form",
+                    "Form is invalid.",
+                    "GraphSet title, lower chars and upper chars shouldn't be empty."
+            );
             isValid = false;
             return isValid;
         }
@@ -109,11 +109,11 @@ public class CreateGraphSetController extends Controller implements Form {
             graphSet.setTitle(this.titleTextField.getText());
         } catch (InvalidCharSequenceLengthException e) {
             log.error("Lower and upper aren't equal.", e);
-            Alert error = new Alert(Alert.AlertType.ERROR);
-            error.setTitle("Lower-Upper Length Error");
-            error.setHeaderText("Lower-Upper Not Equal");
-            error.setContentText("The length of lower and upper characters must be equal.");
-            error.showAndWait();
+            Utils.generateErrorAlert(
+                    "Lower-Upper Length Error",
+                    "Lower and upper characters aren't equal.",
+                    "Lower and upper characters must be equal."
+            );
             return;
         }
 
@@ -123,12 +123,11 @@ public class CreateGraphSetController extends Controller implements Form {
             this.getStage(event).close();
         } catch (IOException e) {
             log.error("An error occured while saving GraphSet.", e);
-            Alert error = new Alert(Alert.AlertType.ERROR);
-
-            error.setTitle("GraphSet Not Saved");
-            error.setHeaderText("GraphSet could not be saved.");
-            error.setContentText("GraphSet could not be saved. Please make sure you have free space in your disk or your disk is not damaged.");
-            error.showAndWait();
+            Utils.generateErrorAlert(
+                    "GraphSet Not Saved",
+                    "GraphSet could not be saved.",
+                    "Please make sure you have free space in your disk or your disk is not damaged."
+            );
             return;
         }
     }

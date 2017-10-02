@@ -8,6 +8,7 @@ import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.AboutView;
 import com.erayerdin.corpustk.views.CreateCorpusPackageView;
 import com.erayerdin.corpustk.views.CreateGraphSetView;
+import com.erayerdin.corpustk.views.TextView;
 import com.erayerdin.linglib.corpus.Query;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -142,6 +143,9 @@ public class MainController extends Controller {
 
         this.textsListView.setCellFactory(param -> new TextListCell());
         this.initializeKeyCombinations();
+
+        // Adding Event Handler to Text ListView
+        this.textsListViewEventHandler();
     }
 
     public void initializeKeyCombinations() {
@@ -153,6 +157,40 @@ public class MainController extends Controller {
         this.addGraphSetMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.G, KeyCombination.CONTROL_DOWN));
         this.quitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
         this.aboutMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F1));
+    }
+
+    public void textsListViewEventHandler() {
+        log.debug("Adding double-click event handler to Text ListView...");
+        this.textsListView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                log.debug("Initializing TextView...");
+                Text selected = this.textsListView.getSelectionModel().getSelectedItem();
+
+                log.debug("Setting TextView's text instance...");
+                TextController.setTextInstance(selected);
+
+                TextView textView = new TextView();
+                Scene scene = null;
+
+                try {
+                    scene = textView.createScene();
+                } catch (IOException e1) {
+                    log.error("An error occured while initializing TextView...", e);
+                    System.exit(1);
+                }
+
+                Stage stage = new Stage();
+                stage.setScene(scene);
+                stage.setResizable(false);
+                stage.setTitle(textView.getTitle());
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.showAndWait();
+
+                // update list
+
+                TextController.setTextInstance(null);
+            }
+        });
     }
 
     ///////////////////
@@ -365,7 +403,7 @@ public class MainController extends Controller {
         fileChooser.getExtensionFilters().add(ext);
         List<File> files = fileChooser.showOpenMultipleDialog(this.getWindow(event));
 
-        if (!files.isEmpty()) {
+        if (files != null) {
             files.stream()
                     .forEach(f -> {
                         StringBuilder sb = new StringBuilder();
@@ -421,7 +459,7 @@ public class MainController extends Controller {
         createCorpusPackageStage.setTitle(createCorpusPackageView.getTitle());
         createCorpusPackageStage.setResizable(false);
         createCorpusPackageStage.initModality(Modality.APPLICATION_MODAL);
-        createCorpusPackageStage.show(); // TODO get data from this stage
+        createCorpusPackageStage.show();
     }
 
     @FXML
@@ -433,6 +471,7 @@ public class MainController extends Controller {
 
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Corpus Package", "*.crp");
+        fileChooser.getExtensionFilters().add(ext);
         File file = fileChooser.showOpenDialog(this.getWindow(event));
 
         if (file != null) {
@@ -460,6 +499,7 @@ public class MainController extends Controller {
                 return;
             }
 
+            corpus.setFileOnDisk(file);
             setCorpusInstance(corpus);
         } else {
             log.warn("User didn't choose any corpus file to open.");
@@ -470,7 +510,7 @@ public class MainController extends Controller {
     @FXML
     void quit(ActionEvent event) {
         boolean r = this.corpusExistsAlert();
-        if (r) return;
+        if (!r) return;
 
         Platform.exit();
     }

@@ -6,7 +6,6 @@ import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -58,11 +57,11 @@ public class CreateCorpusPackageController extends Controller implements Form {
                 || this.pathTextField.getText().isEmpty()) { // if not valid
             log.error("Form is not valid.");
 
-            Alert error = new Alert(Alert.AlertType.ERROR);
-            error.setTitle("Invalid Form");
-            error.setHeaderText("Form is invalid.");
-            error.setContentText("Corpus Package Title and Path shouldn't be empty.");
-            error.showAndWait();
+            Utils.generateErrorAlert(
+                    "Invalid Form",
+                    "Form is invalid.",
+                    "Corpus Package Title and path should not be empty."
+            );
             isValid = false;
             return isValid;
         }
@@ -82,11 +81,11 @@ public class CreateCorpusPackageController extends Controller implements Form {
         if (saveFile == null) {
             log.debug("Save file not selected.");
 
-            Alert error = new Alert(Alert.AlertType.ERROR);
-            error.setTitle("File Not Defined");
-            error.setHeaderText("File was not defined.");
-            error.setContentText("Please define a file to save the corpus.");
-            error.showAndWait();
+            Utils.generateErrorAlert(
+                    "File Not Defined",
+                    "File was not defined.",
+                    "Please define a file to save the corpus using Browse Files."
+            );
             return;
         } else {
             this.pathTextField.setText(saveFile.getAbsolutePath());
@@ -116,11 +115,11 @@ public class CreateCorpusPackageController extends Controller implements Form {
         } catch (IOException e) {
             log.error("Could not create corpus file...", e);
 
-            Alert error = new Alert(Alert.AlertType.ERROR);
-            error.setTitle("Could Not Create Corpus File");
-            error.setHeaderText("Corpus File could not be created.");
-            error.setContentText("Please make sure your disk is not damaged or has space.");
-            error.showAndWait();
+            Utils.generateErrorAlert(
+                    "Could Not Create Corpus File",
+                    "Corpus File could not be created.",
+                    "Please make sure you have free space in your disk or your disk is not damaged."
+            );
             return;
         }
         corpus.setFileOnDisk(file);
