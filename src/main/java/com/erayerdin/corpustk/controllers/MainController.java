@@ -92,7 +92,7 @@ public class MainController extends Controller {
     private Button resetNgramButton;
 
     @FXML
-    private TableView<?> ngramsTableView;
+    private TableView<Query> ngramsTableView;
 
     @FXML
     private TextField textFilterQueryTextField;
@@ -104,7 +104,7 @@ public class MainController extends Controller {
     private Button textFilterResetButton;
 
     @FXML
-    private ChoiceBox<QueryType> textFilterTypeChoiceBox;
+    private ChoiceBox<?> textFilterTypeChoiceBox;
 
     @FXML
     private ListView<Text> textsListView;
