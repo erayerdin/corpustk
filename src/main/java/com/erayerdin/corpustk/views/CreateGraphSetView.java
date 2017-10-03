@@ -6,12 +6,11 @@ import javafx.beans.property.StringProperty;
 public class CreateGraphSetView extends View {
     private String viewName = "CreateCorpusPackageScreen";
     private StringProperty title = new SimpleStringProperty("Create GraphSet");
-    private Integer width = 960;
-    private Integer height = 540;
 
     public CreateGraphSetView() {
         this.setViewName("CreateGraphSetScreen");
-        this.setDecorated(true);
+        this.setModal(true);
+        this.setResizable(false);
     }
 
     @Override

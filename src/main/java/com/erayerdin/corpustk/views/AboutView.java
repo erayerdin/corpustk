@@ -12,6 +12,8 @@ public class AboutView extends View {
     public AboutView() {
         this.setViewName("AboutScreen");
         this.setDecorated(true);
+        this.setResizable(false);
+        this.setModal(true);
     }
 
     @Override

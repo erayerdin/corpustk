@@ -1,28 +1,39 @@
 package com.erayerdin.corpustk.views;
 
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 
 @Log4j2
-@ToString(exclude = {"baseDir", "title", "width", "height", "decorated"})
+@ToString(exclude = {"baseDir", "title", "width", "height", "decorated", "resizable", "modal"})
 public abstract class View {
     private static final String baseDir = "fxml";
+    @Getter private static final Image icon = new Image("img/icon-128.png");
 
     private String viewName;
     private StringProperty title;
     private Integer width = null;
     private Integer height = null;
-    private boolean decorated = true;
+    @Getter @Setter private boolean decorated = true;
+    @Getter @Setter private boolean resizable = true;
+    @Getter @Setter private boolean modal = false;
 
-    public View() {log.debug(String.format("Creating %d...", this.hashCode()));}
+    public View() {
+        log.debug(String.format("Creating %d...", this.hashCode()));
+        this.title = new SimpleStringProperty(null);
+    }
 
     public View(String viewName, String title) {
         this.viewName = viewName;
@@ -53,6 +64,33 @@ public abstract class View {
             scene = new Scene(root, this.getWidth().intValue(), this.getHeight().intValue());
 
         return scene;
+    }
+
+    public Stage createStage() {
+        log.debug(String.format("Creating stage for %s...", this.toString()));
+        Stage stage = new Stage();
+
+        if (this.getTitle() != null)
+            stage.setTitle(this.getTitle());
+
+        try {
+            stage.setScene(this.createScene());
+        } catch (IOException e) {
+            log.error("An error occured while creating scene...", e);
+            System.exit(1);
+        }
+
+        stage.setResizable(this.isResizable());
+
+        if (!this.isDecorated()) {
+            stage.initStyle(StageStyle.UNDECORATED);
+        }
+
+        if (this.isModal())
+            stage.initModality(Modality.APPLICATION_MODAL);
+
+        stage.getIcons().add(getIcon());
+        return stage;
     }
 
     public String getViewPath() {

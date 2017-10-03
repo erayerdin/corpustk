@@ -10,6 +10,7 @@ import com.erayerdin.corpustk.views.CreateCorpusPackageView;
 import com.erayerdin.corpustk.views.CreateGraphSetView;
 import com.erayerdin.corpustk.views.TextView;
 import com.erayerdin.linglib.corpus.Query;
+import com.erayerdin.linglib.corpus.QueryType;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -91,7 +92,7 @@ public class MainController extends Controller {
     private Button resetNgramButton;
 
     @FXML
-    private TableView<Query> ngramsTableView;
+    private TableView<?> ngramsTableView;
 
     @FXML
     private TextField textFilterQueryTextField;
@@ -103,7 +104,7 @@ public class MainController extends Controller {
     private Button textFilterResetButton;
 
     @FXML
-    private ChoiceBox<?> textFilterTypeChoiceBox;
+    private ChoiceBox<QueryType> textFilterTypeChoiceBox;
 
     @FXML
     private ListView<Text> textsListView;
@@ -348,39 +349,14 @@ public class MainController extends Controller {
     @FXML
     void about(ActionEvent event) {
         AboutView aboutView = new AboutView();
-        Scene aboutScene = null;
-        try {
-            aboutScene = aboutView.createScene();
-        } catch (IOException e) {
-            log.error(String.format("An error occured while loading %s.", aboutView.getTitle()), e);
-            System.exit(1);
-        }
-
-        Stage aboutStage = new Stage();
-        aboutStage.setTitle(aboutView.getTitle());
-        aboutStage.setScene(aboutScene);
-        aboutStage.setResizable(false);
-        aboutStage.initModality(Modality.APPLICATION_MODAL);
+        Stage aboutStage = aboutView.createStage();
         aboutStage.show();
     }
 
     @FXML
     void addGraphSet(ActionEvent event) {
         CreateGraphSetView gsView = new CreateGraphSetView();
-        Scene gsScene = null;
-
-        try {
-            gsScene = gsView.createScene();
-        } catch (IOException e) {
-            log.error("An error occured while loading CreateGraphSetView.", e);
-            System.exit(1);
-        }
-
-        Stage gsStage = new Stage();
-        gsStage.setTitle(gsView.getTitle());
-        gsStage.setScene(gsScene);
-        gsStage.setResizable(false);
-        gsStage.initModality(Modality.APPLICATION_MODAL);
+        Stage gsStage = gsView.createStage();
         gsStage.show();
     }
 
@@ -445,20 +421,8 @@ public class MainController extends Controller {
         if (r) return; // TODO patch here
 
         CreateCorpusPackageView createCorpusPackageView = new CreateCorpusPackageView();
-        Scene createCorpusPackageScene = null;
 
-        try {
-            createCorpusPackageScene = createCorpusPackageView.createScene();
-        } catch (IOException e) {
-            log.error(String.format("An error occured while loading %s.", createCorpusPackageView.getTitle()), e);
-            System.exit(1);
-        }
-
-        Stage createCorpusPackageStage = new Stage();
-        createCorpusPackageStage.setScene(createCorpusPackageScene);
-        createCorpusPackageStage.setTitle(createCorpusPackageView.getTitle());
-        createCorpusPackageStage.setResizable(false);
-        createCorpusPackageStage.initModality(Modality.APPLICATION_MODAL);
+        Stage createCorpusPackageStage = createCorpusPackageView.createStage();
         createCorpusPackageStage.show();
     }
 

@@ -11,7 +11,8 @@ public class CreateCorpusPackageView extends View {
 
     public CreateCorpusPackageView() {
         this.setViewName("CreateCorpusPackageScreen");
-        this.setDecorated(true);
+        this.setResizable(false);
+        this.setModal(true);
     }
 
     @Override

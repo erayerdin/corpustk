@@ -1,13 +1,9 @@
 package com.erayerdin.corpustk;
 
-import com.erayerdin.corpustk.models.graphology.GraphSet;
 import com.erayerdin.corpustk.views.MainView;
 import com.erayerdin.corpustk.views.SplashView;
-import com.erayerdin.corpustk.views.View;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
-import javafx.collections.ObservableList;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -15,10 +11,7 @@ import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
-import net.harawata.appdirs.AppDirs;
 import net.harawata.appdirs.AppDirsFactory;
-
-import java.io.IOException;
 
 @Log4j2
 public class App extends Application {
@@ -59,9 +52,7 @@ public class App extends Application {
         if (splashView.isDecorated() == false)
             focalStage.initStyle(StageStyle.UNDECORATED);
 
-        Scene splashScene = splashView.createScene();
-        focalStage.setScene(splashScene);
-
+        focalStage = splashView.createStage();
         focalStage.show();
 
         // https://stackoverflow.com/a/29444159
@@ -72,16 +63,9 @@ public class App extends Application {
             focalStage.close();
 
             MainView mainView = new MainView();
-            Scene mainScene = null;
-            try {
-                mainScene = mainView.createScene();
-            } catch (IOException e1) {
-                log.error(String.format("An error occured while loading %s.", mainView.toString()), e1);
-                System.exit(1);
-            }
-            focalStage = new Stage();
-            focalStage.setScene(mainScene);
-            focalStage.setTitle(mainView.getTitle());
+            Stage mainStage = mainView.createStage();
+
+            focalStage = mainStage;
             focalStage.show();
         });
         pause.play();
