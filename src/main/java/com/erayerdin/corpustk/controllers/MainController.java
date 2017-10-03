@@ -4,6 +4,7 @@ import com.erayerdin.corpustk.Utils;
 import com.erayerdin.corpustk.core.listcells.TextListCell;
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.corpus.Corpus;
+import com.erayerdin.corpustk.models.corpus.GramType;
 import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.AboutView;
 import com.erayerdin.corpustk.views.CreateCorpusPackageView;
@@ -80,10 +81,10 @@ public class MainController extends Controller {
     private TextField ngramQueryTextField;
 
     @FXML
-    private ChoiceBox<?> ngramTypeChoiceBox;
+    private ChoiceBox<GramType> ngramTypeChoiceBox;
 
     @FXML
-    private ChoiceBox<?> ngramQueryTypeChoiceBox;
+    private ChoiceBox<QueryType> ngramQueryTypeChoiceBox;
 
     @FXML
     private Button ngramSearchButton;
@@ -104,7 +105,7 @@ public class MainController extends Controller {
     private Button textFilterResetButton;
 
     @FXML
-    private ChoiceBox<?> textFilterTypeChoiceBox;
+    private ChoiceBox<QueryType> textFilterTypeChoiceBox;
 
     @FXML
     private ListView<Text> textsListView;
@@ -132,7 +133,7 @@ public class MainController extends Controller {
 //                this.textListener();
 //                this.filteredTextListeners();
 //                this.queryListener();
-                this.textsListView.setItems(getCorpusInstance().getTexts()); // ?
+                this.textsListView.setItems(getCorpusInstance().getTexts());
             } else {
                 log.debug("Corpus is null. Disabling UI...");
                 this.getStage().setTitle("Corpus Toolkit");
@@ -147,6 +148,23 @@ public class MainController extends Controller {
 
         // Adding Event Handler to Text ListView
         this.textsListViewEventHandler();
+
+        // Adding enum values to various sections
+        this.initializeTypeChoiceBoxes();
+    }
+
+    public void initializeTypeChoiceBoxes() {
+        log.debug("Adding QueryType values to Text Filter section...");
+        this.textFilterTypeChoiceBox.getItems().addAll(QueryType.values());
+        this.textFilterTypeChoiceBox.getSelectionModel().selectFirst();
+
+        log.debug("Adding QueryType values to Ngram section...");
+        this.ngramQueryTypeChoiceBox.getItems().addAll(QueryType.values());
+        this.ngramQueryTypeChoiceBox.getSelectionModel().selectFirst();
+
+        log.debug("Adding GramType values to Ngram section...");
+        this.ngramTypeChoiceBox.getItems().addAll(GramType.values());
+        this.ngramTypeChoiceBox.getSelectionModel().selectFirst();
     }
 
     public void initializeKeyCombinations() {
