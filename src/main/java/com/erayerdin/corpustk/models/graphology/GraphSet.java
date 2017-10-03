@@ -6,10 +6,13 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.*;
+import java.util.Arrays;
 
 @Log4j2
 @ToString(exclude = {"graphemes"})
 public class GraphSet extends com.erayerdin.linglib.graphology.GraphSet implements Model {
+    public static final long serialVersionUID = 1L;
+
     private String title;
 
     public GraphSet() {}
@@ -21,6 +24,15 @@ public class GraphSet extends com.erayerdin.linglib.graphology.GraphSet implemen
     public GraphSet(String title, Grapheme... graphemes) {
         super(graphemes);
         this.title = title;
+    }
+
+    public boolean equals(GraphSet gset) {
+        boolean titleEquals = this.getTitle().equals(gset.getTitle());
+        boolean graphemesEquals = (this.getGraphemes().length == gset.getGraphemes().length)
+                && (Arrays.asList(this.getGraphemes()).containsAll(Arrays.asList(gset.getGraphemes()))); // TODO find an efficient way
+        boolean r = titleEquals && graphemesEquals;
+
+        return r;
     }
 
     public String getTitle() {

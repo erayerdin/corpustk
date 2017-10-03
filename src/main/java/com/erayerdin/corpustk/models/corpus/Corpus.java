@@ -19,6 +19,8 @@ import java.io.*;
 @Log4j2
 @ToString(exclude = {"texts", "graphSet", "filteredTexts", "queries"})
 public class Corpus implements Model {
+    public static final long serialVersionUID = 1L;
+
     private StringProperty title;
     private ObservableList<Text> texts;
     private ObjectProperty<GraphSet> graphSet;

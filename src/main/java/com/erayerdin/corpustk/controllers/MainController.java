@@ -1,11 +1,13 @@
 package com.erayerdin.corpustk.controllers;
 
+import com.erayerdin.corpustk.App;
 import com.erayerdin.corpustk.Utils;
 import com.erayerdin.corpustk.core.listcells.TextListCell;
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.corpus.GramType;
 import com.erayerdin.corpustk.models.corpus.Text;
+import com.erayerdin.corpustk.models.graphology.GraphSet;
 import com.erayerdin.corpustk.views.AboutView;
 import com.erayerdin.corpustk.views.CreateCorpusPackageView;
 import com.erayerdin.corpustk.views.CreateGraphSetView;
@@ -72,7 +74,7 @@ public class MainController extends Controller {
     private Button importTextButton;
 
     @FXML
-    private ChoiceBox<?> graphSetChoiceBox;
+    private ChoiceBox<GraphSet> graphSetChoiceBox;
 
     @FXML
     private Button exportAsTable;
@@ -134,12 +136,15 @@ public class MainController extends Controller {
 //                this.filteredTextListeners();
 //                this.queryListener();
                 this.textsListView.setItems(getCorpusInstance().getTexts());
+                this.checkGraphSet(newVal.getGraphSet());
             } else {
                 log.debug("Corpus is null. Disabling UI...");
                 this.getStage().setTitle("Corpus Toolkit");
 
                 this.textsListView.getItems().clear();
                 this.disableCorpusInstanceListeners(true);
+
+                this.graphSetChoiceBox.getItems().clear();
             }
         });
 
@@ -151,6 +156,43 @@ public class MainController extends Controller {
 
         // Adding enum values to various sections
         this.initializeTypeChoiceBoxes();
+    }
+
+    public void checkGraphSet(GraphSet gset) {
+        log.debug(String.format("Checking all graphsets for %s...", gset.toString()));
+
+        GraphSet[] gsets = Utils.loadGraphSets();
+        boolean exists = false;
+
+        for (GraphSet g : gsets) {
+            if (g.equals(gset)) exists = true;
+        }
+
+        if (exists) {
+            log.debug("GraphSet found, adding items to ChoiceBox...");
+            this.graphSetChoiceBox.getItems().addAll(gsets);
+            this.graphSetChoiceBox.getSelectionModel().select(gset);
+        } else {
+            log.warn("GraphSet not found.");
+
+            File gsetFile = new File(new File(App.getUserDataDir(), "graphsets"), gset.getTitle().toLowerCase()+".gset");
+            try {
+                log.debug("Saving unexpected GraphSet file...");
+                Model.save(gset, gsetFile);
+            } catch (IOException e) {
+                log.error(String.format("An error occured while saving new GraphSet file..."), e);
+            }
+
+            gsets = Utils.loadGraphSets();
+            this.graphSetChoiceBox.getItems().setAll(gsets);
+
+            try {
+                this.graphSetChoiceBox.getSelectionModel().select(gset);
+            } catch (Exception e) {
+                log.info("Due to error on saving unexpected GraphSet, selecting the first one...");
+                this.graphSetChoiceBox.getSelectionModel().selectFirst();
+            }
+        }
     }
 
     public void initializeTypeChoiceBoxes() {
