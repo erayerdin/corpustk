@@ -2,15 +2,12 @@ package com.erayerdin.corpustk.models.corpus;
 
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
-import com.erayerdin.linglib.corpus.Query;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
@@ -25,24 +22,13 @@ public class Corpus implements Model {
     private ObservableList<Text> texts;
     private ObjectProperty<GraphSet> graphSet;
 
-    @Getter private transient ObservableList<Text> filteredTexts;
-    @Getter private transient ObservableList<Query> queries;
-    @Getter @Setter private transient File fileOnDisk;
-
-    public Corpus() {
-        this.filteredTexts = FXCollections.observableArrayList();
-        this.queries = FXCollections.observableArrayList();
-        this.fileOnDisk = null;
-    }
+    public Corpus() {}
 
     public Corpus(String title, GraphSet graphSet) {
         this.title = new SimpleStringProperty(title);
         this.texts = FXCollections.observableArrayList();
         this.graphSet = new SimpleObjectProperty<>(graphSet);
 
-        this.filteredTexts = FXCollections.observableArrayList();
-        this.queries = FXCollections.observableArrayList();
-        this.fileOnDisk = null;
         log.debug(String.format("Created %s.", this.toString()));
     }
 

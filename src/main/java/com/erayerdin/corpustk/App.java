@@ -66,6 +66,7 @@ public class App extends Application {
             Stage mainStage = mainView.createStage();
 
             focalStage = mainStage;
+            focalStage.setMaximized(true);
             focalStage.show();
         });
         pause.play();

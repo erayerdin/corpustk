@@ -17,8 +17,11 @@ import com.erayerdin.linglib.corpus.QueryType;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -29,6 +32,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.*;
@@ -36,6 +41,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 @Log4j2
 public class MainController extends Controller {
@@ -112,43 +118,45 @@ public class MainController extends Controller {
     @FXML
     private ListView<Text> textsListView;
 
+    @FXML
+    private MenuBar menuBar;
+
+    @FXML
+    private ListView<Text> filteredTextsListView;
+
     //////////////////
     // Model Fields //
     //////////////////
 
     private static ObjectProperty<Corpus> corpusInstance;
 
+    @Getter @Setter private static FilteredList<Text> filteredTexts;
+    @Getter private static ObservableList<Query> queries;
+    @Getter @Setter private static File fileOnDisk;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         log.debug(String.format("Initializing %s...", this.getClass().getName()));
 
+        final String os = System.getProperty("os.name");
+        if (os != null && (os.startsWith("Mac") || os.startsWith("Linux"))) {
+            Platform.runLater(() -> menuBar.setUseSystemMenuBar(true));
+            log.debug("Using native menu..."); // TODO implement native menu
+            // doesn't work on linux
+        }
+
         corpusInstance = new SimpleObjectProperty<>(null);
+        this.filteredTexts = new FilteredList<Text>(getCorpusInstance().getTexts(), p -> true);
+        this.queries = FXCollections.observableArrayList();
+        this.fileOnDisk = null;
 
-        corpusInstance.addListener((prop, oldVal, newVal) -> {
-            if (newVal != null) {
-                log.debug("Corpus initialized. Adding listeners...");
-
-                // change title
-                this.getStage().setTitle("Corpus Toolkit - "+newVal.getTitle());
-
-                this.disableCorpusInstanceListeners(false);
-//                this.textListener();
-//                this.filteredTextListeners();
-//                this.queryListener();
-                this.textsListView.setItems(getCorpusInstance().getTexts());
-                this.checkGraphSet(newVal.getGraphSet());
-            } else {
-                log.debug("Corpus is null. Disabling UI...");
-                this.getStage().setTitle("Corpus Toolkit");
-
-                this.textsListView.getItems().clear();
-                this.disableCorpusInstanceListeners(true);
-
-                this.graphSetChoiceBox.getItems().clear();
-            }
-        });
+        // Add Listeners
+        this.corpusNodeListener();
+        this.textListener();
+        this.filteredTextListener();
 
         this.textsListView.setCellFactory(param -> new TextListCell());
+        this.filteredTextsListView.setCellFactory(param -> new TextListCell());
         this.initializeKeyCombinations();
 
         // Adding Event Handler to Text ListView
@@ -259,85 +267,83 @@ public class MainController extends Controller {
     ///////////////////
 
     //// Listeners ////
-    private void queryListener() {
-        log.debug("Adding listeners for queries...");
-
-        ListChangeListener queryListener = new ListChangeListener() {
-            @Override
-            public void onChanged(Change c) {
-                ObservableList<Query> queries = c.getList();
-                ngramsTableView.getItems().clear();
-
-                log.debug("Query found. Updating query table view to queries.");
-                // TODO implement how the table will look like
-                ngramsTableView.getItems().addAll(queries);
+    private void corpusNodeListener() {
+        ChangeListener corpusNodeListener = (prop, oldCorpus, newCorpus) -> {
+            if (newCorpus != null) {
+                disableCorpusNodes(false);
+            } else {
+                disableCorpusNodes(true);
             }
         };
 
-        try {
-            corpusInstance.get().getQueries().addListener(queryListener);
-        } catch (NullPointerException e) {
-            log.warn("Corpus is null. Cannot listen queries.");
-        }
+        log.debug("Adding corpus node listener...");
+        corpusInstance.addListener(corpusNodeListener);
     }
 
     private void textListener() {
-        log.debug("Adding listeners for main texts...");
-
-        ListChangeListener textListener = new ListChangeListener() {
-            @Override
-            public void onChanged(Change c) {
-                if (getCorpusInstance().getFilteredTexts().isEmpty()) {
-                    log.debug("Filtered texts is empty. Updating Texts ListView to main texts...");
-                    textsListView.getItems().clear();
-                    textsListView.getItems().addAll(getCorpusInstance().getTexts());
-                } else {
-                    log.warn("Filtered texts is not empty. Cannot update Texts ListView with main texts...");
-                }
-                System.out.println();
-            }
+        ListChangeListener<Text> textListener = (c) -> {
+            ObservableList<Text> texts = (ObservableList<Text>) c.getList();
+            log.debug("Setting texts to Text ListView...");
+            textsListView.setItems(texts);
         };
 
-        try {
-            // adding listener to main texts
-            corpusInstance.get().getTexts().addListener(textListener);
-        } catch (NullPointerException e) {
-            log.warn("Corpus is null. Cannot listen main texts.", e);
-        }
+        corpusInstance.addListener((prop, oldCorpus, newCorpus) -> {
+            if (newCorpus != null) {
+                log.debug("Adding text listener...");
+                textsListView.setItems(filteredTexts);
+                filteredTexts.addListener(textListener);
+            } else {
+                log.debug("Removing text listener...");
+                textsListView.getItems().clear();
+                filteredTexts.removeListener(textListener);
+            }
+        });
     }
 
-    private void filteredTextListeners() {
-        log.debug("Adding listeners for filtered texts...");
-
-        ListChangeListener filteredTextListener = new ListChangeListener() {
-            @Override
-            public void onChanged(Change c) {
-                ObservableList<Text> filteredTexts = c.getList();
-                textsListView.getItems().clear();
-
-                // if there are filtered texts
-                if (!filteredTexts.isEmpty()) {
-                    log.debug("Filtered texts found. Updating text list view to filtered texts.");
-                    textsListView.getItems().setAll(filteredTexts);
-                } else {
-                    log.debug("Filtered texts got reset. Updating text list view to corpus texts.");
-                    textsListView.getItems().setAll(corpusInstance.get().getTexts());
+    private void filteredTextListener() {
+        log.debug("Adding listener to text filter query text field...");
+        this.textFilterQueryTextField.textProperty().addListener((obs, oldVal, newVal) -> {
+            log.debug("Adding predicate to filtered texts...");
+            filteredTexts.setPredicate(text -> {
+                if (newVal == null || newVal.isEmpty() || newVal.length() < 2) {
+                    log.debug("Filter query is null, empty or its length is less than 2. Returning all texts...");
+                    return true;
                 }
-            }
-        };
 
-        try {
-            // adding listener to textsListView
-            corpusInstance.get().getFilteredTexts().addListener(filteredTextListener);
-        } catch (NullPointerException e) {
-            log.warn("Corpus is null. Cannot listen filtered texts.", e);
-        }
+                boolean r = false;
+
+                switch (this.textFilterTypeChoiceBox.getSelectionModel().getSelectedItem()) {
+                    case STRING:
+                        r = this.isTextFilterValidByString(text);
+                        break;
+                    case PATTERN:
+                        r = this.isTextFilterValidByRegex(text);
+                        break;
+                    default:
+                        break;
+                }
+
+                return r;
+            });
+        });
+    }
+
+    private boolean isTextFilterValidByString(Text text) {
+        log.debug(String.format("Is %s valid for %s?", text.toString(), this.textFilterQueryTextField.getText().trim()));
+        return text.getTags().stream().anyMatch(t -> this.textFilterQueryTextField.getText().trim() == t);
+    }
+
+    private boolean isTextFilterValidByRegex(Text text) {
+        log.debug(String.format("Is %s valid for [%s] regex?", text.toString(), this.textFilterQueryTextField.getText()));
+        Pattern p = Pattern.compile(this.textFilterQueryTextField.getText());
+        return text.getTags().stream()
+                .anyMatch(t -> p.matcher(t).matches());
     }
 
     //// Other Methods ////
 
-    private void disableCorpusInstanceListeners(boolean disabled) {
-        log.debug(String.format("Setting corpus instance listener elements to %s", Boolean.toString(disabled)));
+    private void disableCorpusNodes(boolean disabled) {
+        log.debug(String.format("Setting corpus nodes to %s", Boolean.toString(disabled)));
 
         // View
         this.saveCorpusPackageButton.setDisable(disabled);
@@ -355,6 +361,7 @@ public class MainController extends Controller {
         this.ngramSearchButton.setDisable(disabled);
         this.resetNgramButton.setDisable(disabled);
         this.ngramsTableView.setDisable(disabled);
+        this.filteredTextsListView.setDisable(disabled);
 
         // Menu Elements
         this.saveCorpusPackageMenuItem.setDisable(disabled);
@@ -425,10 +432,17 @@ public class MainController extends Controller {
 
     }
 
-    @FXML
-    void filterTexts(ActionEvent event) {
-
-    }
+//    @FXML
+//    void filterTexts(ActionEvent event) {
+//        log.debug("Filtering texts...");
+//        QueryType type = this.textFilterTypeChoiceBox.getValue();
+//
+//        if (type == QueryType.STRING) {
+//            this.filterTextsByString();
+//        } else {
+//            this.filterTextsByPattern();
+//        }
+//    }
 
     @FXML
     void importText(ActionEvent event) {
@@ -523,7 +537,7 @@ public class MainController extends Controller {
                 return;
             }
 
-            corpus.setFileOnDisk(file);
+            setFileOnDisk(file);
             setCorpusInstance(corpus);
         } else {
             log.warn("User didn't choose any corpus file to open.");
@@ -542,13 +556,15 @@ public class MainController extends Controller {
     @FXML
     void resetFilter(ActionEvent event) {
         log.debug("Resetting filters...");
-        getCorpusInstance().getFilteredTexts().clear();
+        this.filteredTextsListView.getItems().clear();
+//        this.textsListView.getItems().clear();
+//        this.textsListView.getItems().addAll(getCorpusInstance().getTexts());
     }
 
     @FXML
     void resetNgrams(ActionEvent event) {
         log.debug("Resetting table...");
-        getCorpusInstance().getQueries().clear();
+        getQueries().clear();
     }
 
     @FXML
@@ -556,7 +572,7 @@ public class MainController extends Controller {
         log.debug("Serializing current corpus instance to a file...");
 
         try {
-            Model.save(getCorpusInstance(), getCorpusInstance().getFileOnDisk());
+            Model.save(getCorpusInstance(), getFileOnDisk());
         } catch (IOException e) {
             log.error("An error occured while serializing corpus instance to a file.");
             Utils.generateErrorAlert(

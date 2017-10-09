@@ -122,8 +122,8 @@ public class CreateCorpusPackageController extends Controller implements Form {
             );
             return;
         }
-        corpus.setFileOnDisk(file);
 
+        MainController.setFileOnDisk(file);
         MainController.setCorpusInstance(corpus);
         this.getStage(event).close();
     }
