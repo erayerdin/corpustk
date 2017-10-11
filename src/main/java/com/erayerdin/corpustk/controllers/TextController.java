@@ -4,12 +4,10 @@ import com.erayerdin.corpustk.Utils;
 import com.erayerdin.corpustk.models.corpus.Text;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import lombok.extern.log4j.Log4j2;
 
@@ -55,6 +53,7 @@ public class TextController extends Controller implements Form {
         // Adding tags
         String[] tags = getTextInstance().getTags().toArray(new String[getTextInstance().getTags().size()]);
         this.tagsListView.getItems().addAll(tags);
+        this.tagsListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         // text instance will be nullified in MainController
     }
@@ -105,30 +104,34 @@ public class TextController extends Controller implements Form {
 
     @FXML
     void addTag(ActionEvent event) {
-        String tag = this.tagTextField.getText().trim();
-        log.debug(String.format("Adding tag %s...", tag));
+        String[] tags = this.tagTextField.getText().split(",");
 
-        // validate tag
-        boolean isValid = tag.chars().allMatch(c -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '-');
+        for (String tag : tags) {
+            tag = tag.trim();
+            log.debug(String.format("Adding tag %s...", tag));
 
-        if (!isValid) {
-            log.warn(String.format("%s is invalid as tag. Returning...", tag));
-            Utils.generateErrorAlert(
-                    "Invalid Tag",
-                    "Tag is not valid.",
-                    "Tags can only contain letters, numbers and dash (-) character."
-            );
-            return;
-        }
+            // validate tag
+            boolean isValid = tag.chars().allMatch(c -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '-');
 
-        if (tag.isEmpty()) {
-            log.warn("Tag is trimmed and resulted empty, clearing field and returning...");
+            if (!isValid) {
+                log.warn(String.format("%s is invalid as tag. Returning...", tag));
+                Utils.generateErrorAlert(
+                        "Invalid Tag",
+                        "Tag is not valid.",
+                        "Tags can only contain letters, numbers and dash (-) character."
+                );
+                return;
+            }
+
+            if (tag.isEmpty()) {
+                log.warn("Tag is trimmed and resulted empty, clearing field and returning...");
+                this.tagTextField.clear();
+                return;
+            }
+
+            this.tagsListView.getItems().add(tag);
             this.tagTextField.clear();
-            return;
         }
-
-        this.tagsListView.getItems().add(tag);
-        this.tagTextField.clear();
     }
 
     @FXML
@@ -138,9 +141,12 @@ public class TextController extends Controller implements Form {
 
     @FXML
     void removeTag(ActionEvent event) {
-        int selected = this.tagsListView.getSelectionModel().getSelectedIndex();
-        log.debug(String.format("Removing %s from tags...", this.tagsListView.getItems().get(selected)));
-        this.tagsListView.getItems().remove(selected);
+        ObservableList<String> selectedItems = this.tagsListView.getSelectionModel().getSelectedItems();
+
+        for (String tag : selectedItems)
+            log.debug(String.format("Removing %s tag from text...", tag));
+
+        this.tagsListView.getItems().removeAll(selectedItems);
     }
 
     @FXML

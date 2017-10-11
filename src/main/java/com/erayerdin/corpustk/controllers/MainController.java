@@ -8,6 +8,7 @@ import com.erayerdin.corpustk.models.corpus.GramType;
 import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.AboutView;
 import com.erayerdin.corpustk.views.CreateCorpusPackageView;
+import com.erayerdin.corpustk.views.TextView;
 import com.erayerdin.corpustk.views.View;
 import com.erayerdin.linglib.corpus.QueryType;
 import javafx.beans.property.ObjectProperty;
@@ -169,6 +170,7 @@ public class MainController extends Controller {
             }
 
             corpusInstance.set((Corpus) corpus);
+            fileOnDisk = file;
         } else {
             log.warn("Corpus package is not selected. Returning...");
             return;
@@ -305,6 +307,19 @@ public class MainController extends Controller {
                 this.textFilteredList = new FilteredList<Text>(null);
             }
         });
+
+        log.debug("Adding listener to filter field for text filtering...");
+        this.textFilterTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            textFilteredList.setPredicate(text -> {
+                if (newValue.length() < 2) {
+                    log.debug("Tag field is less than 2 characters. More characters needed.");
+                    return true;
+                }
+
+                log.debug("Filtering texts...");
+                return text.getTags().stream().anyMatch(t -> t.contains(newValue));
+            });
+        });
     }
 
     /**
@@ -331,7 +346,24 @@ public class MainController extends Controller {
         log.debug("Initialize texts...");
         this.textsListView.setItems(textFilteredList);
 
+        log.debug("Setting cell factory of text listview...");
         this.textsListView.setCellFactory(c -> new TextListCell());
+
+        log.debug("Adding double-click listener to text listview...");
+        this.textsListView.setOnMouseClicked(click -> {
+            if (click.getClickCount() == 2) {
+                log.debug("Opening text view...");
+                Text obj = textsListView.getSelectionModel().getSelectedItem();
+                TextController.setTextInstance(obj);
+
+                View textView = new TextView();
+                Stage stage = textView.createStage();
+                stage.showAndWait();
+
+                textsListView.refresh(); // for tag tooltips
+                // TODO tooltip refreshing didn't work, see here later
+            }
+        });
     }
 
     public static Corpus getCorpusInstance() {
