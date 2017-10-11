@@ -8,7 +8,10 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
 @Log4j2
 public class Utils {
@@ -62,5 +65,22 @@ public class Utils {
         alert.getDialogPane().setContent(contentLabel);
 
         alert.showAndWait();
+    }
+
+    public static String readTextFile(File path) {
+        List<String> lines = null;
+        try {
+            lines = Files.readAllLines(Paths.get(path.getAbsolutePath()));
+        } catch (IOException e) {
+            log.error("An error occured while reading text file...", e);
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+
+        lines.stream().forEach(line -> {
+            sb.append(line+"\n");
+        });
+
+        return sb.toString();
     }
 }

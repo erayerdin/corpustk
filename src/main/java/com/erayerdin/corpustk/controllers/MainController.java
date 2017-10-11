@@ -1,6 +1,7 @@
 package com.erayerdin.corpustk.controllers;
 
 import com.erayerdin.corpustk.Utils;
+import com.erayerdin.corpustk.core.listcells.TextListCell;
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.corpus.GramType;
@@ -25,6 +26,7 @@ import lombok.extern.log4j.Log4j2;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 @Log4j2
@@ -88,7 +90,7 @@ public class MainController extends Controller {
     private TableView<?> ngramsTableView;
 
     @FXML
-    private ListView<?> textsListView;
+    private ListView<Text> textsListView;
 
     @FXML
     void about(ActionEvent event) {
@@ -109,7 +111,21 @@ public class MainController extends Controller {
 
     @FXML
     void importText(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Text File (*.txt)", "*.txt");
+        fileChooser.getExtensionFilters().add(ext);
 
+        List<File> files = fileChooser.showOpenMultipleDialog(this.getWindow(event));
+
+        files.stream().forEach(file -> {
+            String text = Utils.readTextFile(file);
+
+            if (text != null) {
+                Text obj = new Text(text, corpusInstance.get().getGraphSet());
+                log.debug(String.format("Adding %s text object to corpus instance...", obj.toString()));
+                corpusInstance.get().getTexts().add(obj);
+            }
+        });
     }
 
     @FXML
@@ -157,6 +173,8 @@ public class MainController extends Controller {
             log.warn("Corpus package is not selected. Returning...");
             return;
         }
+
+        this.textsListView.setItems(textFilteredList);
     }
 
     @FXML
@@ -208,6 +226,7 @@ public class MainController extends Controller {
         // Listeners
         this.enableElementsListener();
         this.initializeFilteredList();
+        this.initializeTexts();
 
         // ChoiceBox enums
         this.initializeChoiceBoxes();
@@ -280,10 +299,10 @@ public class MainController extends Controller {
         corpusInstance.addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 log.debug("Constructing text filtered list...");
-                this.textFilteredList.addAll(newValue.getTexts());
+                this.textFilteredList = new FilteredList<Text>(newValue.getTexts());
             } else {
                 log.debug("Deconstructing text filtered list...");
-                this.textFilteredList.clear();
+                this.textFilteredList = new FilteredList<Text>(null);
             }
         });
     }
@@ -303,6 +322,16 @@ public class MainController extends Controller {
         log.debug("Initializing n-gram position types to ChoiceBox element...");
         this.ngramQueryTypeChoiceBox.getItems().addAll(GramType.values());
         this.ngramQueryTypeChoiceBox.getSelectionModel().selectFirst();
+    }
+
+    /**
+     * Initializes text listview...
+     */
+    private void initializeTexts() {
+        log.debug("Initialize texts...");
+        this.textsListView.setItems(textFilteredList);
+
+        this.textsListView.setCellFactory(c -> new TextListCell());
     }
 
     public static Corpus getCorpusInstance() {
