@@ -209,7 +209,30 @@ public class MainController extends Controller {
 
     @FXML
     void saveCorpusPackageAs(ActionEvent event) {
+        log.debug("Save As for corpus fired.");
 
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Corpus Package (*.crp)", "*.crp");
+        fileChooser.getExtensionFilters().add(ext);
+        File file = fileChooser.showSaveDialog(this.getWindow(event));
+
+        if (file != null) {
+            try {
+                Model.save(corpusInstance.get(), file);
+            } catch (IOException e) {
+                log.error("An error occured while saving corpus package.", e);
+
+                Utils.generateErrorAlert(
+                        "Could not Save Corpus Package",
+                        "Corpus Package could not be saved.",
+                        "Please make sure your file system is not damaged or full."
+                );
+
+                return;
+            }
+        } else {
+            log.warn("File to save not selected. Returning...");
+        }
     }
 
     @FXML
