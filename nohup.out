@@ -1,0 +1,8 @@
+Oct 09, 2017 7:38:30 PM com.oracle.javafx.scenebuilder.kit.library.user.LibraryFolderWatcher exploreAndUpdateLibrary
+INFO: Start exploring JAR /home/erayerdin/.scenebuilder/Library/controlsfx-8.40.13.jar
+Oct 09, 2017 7:38:35 PM com.oracle.javafx.scenebuilder.app.SceneBuilderApp logTimestamp
+INFO: JavaFX Scene Builder started
+Oct 09, 2017 7:39:15 PM com.sun.javafx.css.StyleManager loadStylesheetUnPrivileged
+INFO: Could not find stylesheet: jar:file:/opt/SceneBuilder/app/dist.jar!/com/oracle/javafx/scenebuilder/app/skeleton/SkeletonWindow.css
+Oct 09, 2017 7:40:01 PM com.sun.javafx.css.StyleManager loadStylesheetUnPrivileged
+INFO: Could not find stylesheet: jar:file:/opt/SceneBuilder/app/dist.jar!/com/oracle/javafx/scenebuilder/app/skeleton/SkeletonWindow.css
