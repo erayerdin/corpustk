@@ -3,9 +3,10 @@ package com.erayerdin.corpustk;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 enum Status {
@@ -80,11 +81,13 @@ public class AppMeta {
         log.debug("Reading description file...");
         String desc = null;
         try {
-            // https://www.java2blog.com/read-file-from-resources-folder-in-java/
+            // https://stackoverflow.com/questions/20389255/reading-a-resource-file-from-within-jar
             ClassLoader classLoader = AppMeta.class.getClassLoader();
-            File file = new File(classLoader.getResource("DESCRIPTION.txt").getFile());
-            FileInputStream fileInStream = new FileInputStream(file);
-            BufferedReader buffer = new BufferedReader(new InputStreamReader(fileInStream));
+//            File file = new File(classLoader.getResource("DESCRIPTION.txt").getFile());
+            InputStream inStream = classLoader.getResourceAsStream("DESCRIPTION.txt");
+//            FileInputStream fileInStream = new FileInputStream(file);
+//            BufferedReader buffer = new BufferedReader(new InputStreamReader(fileInStream));
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(inStream));
             StringBuilder builder = new StringBuilder();
 
             String line;
@@ -94,7 +97,7 @@ public class AppMeta {
             }
 
             buffer.close();
-            fileInStream.close();
+            inStream.close();
 
             desc = builder.toString();
         } catch (IOException e) {
@@ -107,21 +110,23 @@ public class AppMeta {
         log.debug("Reading license file...");
         String lcs = null;
         try {
-            // https://www.java2blog.com/read-file-from-resources-folder-in-java/
+            // https://stackoverflow.com/questions/20389255/reading-a-resource-file-from-within-jar
             ClassLoader classLoader = AppMeta.class.getClassLoader();
-            File file = new File(classLoader.getResource("LICENSE.txt").getFile());
-            FileInputStream fileInStream = new FileInputStream(file);
-            BufferedReader buffer = new BufferedReader(new InputStreamReader(fileInStream));
+//            File file = new File(classLoader.getResource("DESCRIPTION.txt").getFile());
+            InputStream inStream = classLoader.getResourceAsStream("LICENSE.txt");
+//            FileInputStream fileInStream = new FileInputStream(file);
+//            BufferedReader buffer = new BufferedReader(new InputStreamReader(fileInStream));
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(inStream));
             StringBuilder builder = new StringBuilder();
 
             String line;
 
             while ((line = buffer.readLine()) != null) {
-                builder.append(line);
+                builder.append(line+"\n");
             }
 
             buffer.close();
-            fileInStream.close();
+            inStream.close();
 
             lcs = builder.toString();
         } catch (IOException e) {

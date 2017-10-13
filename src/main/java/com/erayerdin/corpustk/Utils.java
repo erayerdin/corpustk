@@ -15,8 +15,8 @@ import java.util.List;
 
 @Log4j2
 public class Utils {
-    public static GraphSet[] loadGraphSets() {
-        log.debug("Loading GraphSets...");
+    public static File[] loadGraphSetFiles() {
+        log.debug("Loading GraphSet directory...");
         File dir = new File(App.getUserDataDir(), "graphsets");
         dir.mkdirs();
 
@@ -24,6 +24,13 @@ public class Utils {
         File[] gsets = Arrays.stream(dir.listFiles())
                 .filter(o -> o.getName().endsWith(".gset"))
                 .toArray(File[]::new);
+
+        return gsets;
+    }
+
+    public static GraphSet[] loadGraphSets() {
+        log.debug("Loading GraphSets...");
+        File[] gsets = Utils.loadGraphSetFiles();
 
         log.debug("Deserializing .gset files...");
         GraphSet[] graphSets1 = new GraphSet[gsets.length]; // filtered for null values later

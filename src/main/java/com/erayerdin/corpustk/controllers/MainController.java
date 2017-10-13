@@ -6,10 +6,7 @@ import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.corpus.GramType;
 import com.erayerdin.corpustk.models.corpus.Text;
-import com.erayerdin.corpustk.views.AboutView;
-import com.erayerdin.corpustk.views.CreateCorpusPackageView;
-import com.erayerdin.corpustk.views.TextView;
-import com.erayerdin.corpustk.views.View;
+import com.erayerdin.corpustk.views.*;
 import com.erayerdin.linglib.corpus.QueryType;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -18,6 +15,9 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import lombok.Getter;
@@ -131,7 +131,9 @@ public class MainController extends Controller {
 
     @FXML
     void manageGraphSets(ActionEvent event) {
-
+        View manageGraphSetsView = new ManageGraphSetsView();
+        Stage stage = manageGraphSetsView.createStage();
+        stage.show();
     }
 
     @FXML
@@ -148,7 +150,7 @@ public class MainController extends Controller {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Corpus File (*.crp)", "*.crp");
         fileChooser.getExtensionFilters().add(ext);
-        File file = fileChooser.showOpenDialog(this.getWindow(event));
+        File file = fileChooser.showOpenDialog(this.importTextButton.getScene().getWindow()); // patched, menuitem cannot be cast to source
 
         if (file != null) {
             log.debug("Deserializing corpus package...");
@@ -214,7 +216,7 @@ public class MainController extends Controller {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter ext = new FileChooser.ExtensionFilter("Corpus Package (*.crp)", "*.crp");
         fileChooser.getExtensionFilters().add(ext);
-        File file = fileChooser.showSaveDialog(this.getWindow(event));
+        File file = fileChooser.showSaveDialog(this.importTextButton.getScene().getWindow()); // patched, menuitem cannot be cast to source
 
         if (file != null) {
             try {
@@ -252,6 +254,7 @@ public class MainController extends Controller {
         this.enableElementsListener();
         this.initializeFilteredList();
         this.initializeTexts();
+        this.initializeHotkeys();
 
         // ChoiceBox enums
         this.initializeChoiceBoxes();
@@ -375,18 +378,38 @@ public class MainController extends Controller {
         log.debug("Adding double-click listener to text listview...");
         this.textsListView.setOnMouseClicked(click -> {
             if (click.getClickCount() == 2) {
-                log.debug("Opening text view...");
-                Text obj = textsListView.getSelectionModel().getSelectedItem();
-                TextController.setTextInstance(obj);
-
-                View textView = new TextView();
-                Stage stage = textView.createStage();
-                stage.showAndWait();
-
-                textsListView.refresh(); // for tag tooltips
-                // TODO tooltip refreshing didn't work, see here later
+                openText();
             }
         });
+    }
+
+    /**
+     * Initializing hotkeys...
+     */
+    private void initializeHotkeys() {
+        // https://blog.idrsolutions.com/2014/04/tutorial-how-to-setup-key-combinations-in-javafx/
+        log.debug("Initializing hotkeys for menu items...");
+
+        this.newCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
+        this.openCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
+        this.saveCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
+    }
+
+    /**
+     * Opening text view for text...
+     */
+    private void openText() {
+        Text obj = this.textsListView.getSelectionModel().getSelectedItem();
+        log.debug(String.format("Opening %s text...", obj.toString()));
+
+        TextController.setTextInstance(obj);
+
+        View textView = new TextView();
+        Stage stage = textView.createStage();
+        stage.showAndWait();
+
+        textsListView.refresh();
+        // TODO tooltip refreshing didn't work, see here later
     }
 
     public static Corpus getCorpusInstance() {

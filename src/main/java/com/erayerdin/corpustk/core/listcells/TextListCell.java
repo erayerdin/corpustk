@@ -1,8 +1,15 @@
 package com.erayerdin.corpustk.core.listcells;
 
+import com.erayerdin.corpustk.controllers.MainController;
+import com.erayerdin.corpustk.controllers.TextController;
 import com.erayerdin.corpustk.models.corpus.Text;
+import com.erayerdin.corpustk.views.TextView;
+import com.erayerdin.corpustk.views.View;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.stage.Stage;
 import lombok.extern.log4j.Log4j2;
 
 // https://www.billmann.de/2013/07/03/javafx-custom-listcell/
@@ -31,7 +38,36 @@ public class TextListCell extends ListCell<Text> {
             text.contentProperty().addListener((prop, oldVal, newVal) -> {
                 setText(this.textShortener(newVal));
             });
+
+            this.buildContextMenu();
         }
+    }
+
+    private void buildContextMenu() {
+        log.debug("Adding context menu to text list cell...");
+        ContextMenu menu = new ContextMenu();
+
+        MenuItem viewText = new MenuItem("View Text");
+        MenuItem removeText = new MenuItem("Remove Text");
+
+        viewText.setOnAction(e -> {
+            Text obj = this.getItem();
+            log.debug(String.format("Opening %s text...", obj.toString()));
+
+            TextController.setTextInstance(obj);
+
+            View textView = new TextView();
+            Stage stage = textView.createStage();
+            stage.showAndWait();
+        });
+
+        removeText.setOnAction(e -> {
+            MainController.getCorpusInstance().getTexts().remove(this.getItem());
+        });
+
+        menu.getItems().addAll(viewText, removeText);
+
+        this.setContextMenu(menu);
     }
 
     public Tooltip buildTooltip(Text text) {
