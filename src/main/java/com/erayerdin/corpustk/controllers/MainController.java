@@ -49,6 +49,9 @@ public class MainController extends Controller {
     private MenuItem saveCorpusPackageAsMenuItem;
 
     @FXML
+    public MenuItem currentGraphSetMenuItem;
+
+    @FXML
     private MenuItem quitMenuItem;
 
     @FXML
@@ -102,7 +105,9 @@ public class MainController extends Controller {
 
     @FXML
     void currentGraphSet(ActionEvent event) {
-
+        View currentGraphSetView = new CurrentGraphSetView();
+        Stage stage = currentGraphSetView.createStage();
+        stage.show();
     }
 
     @FXML
@@ -301,6 +306,7 @@ public class MainController extends Controller {
 
         this.saveCorpusPackageMenuItem.setDisable(disabled);
         this.saveCorpusPackageAsMenuItem.setDisable(disabled);
+        this.currentGraphSetMenuItem.setDisable(disabled);
 
         this.saveCorpusPackageButton.setDisable(disabled);
         this.importTextButton.setDisable(disabled);

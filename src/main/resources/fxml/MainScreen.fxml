@@ -73,7 +73,7 @@
                                  </image>
                               </ImageView>
                            </graphic></MenuItem>
-                        <MenuItem disable="true" mnemonicParsing="false" onAction="#currentGraphSet" text="Current GraphSet" />
+                        <MenuItem fx:id="currentGraphSetMenuItem" disable="true" mnemonicParsing="false" onAction="#currentGraphSet" text="Current GraphSet" />
                   </items>
                 </Menu>
                   <Menu mnemonicParsing="false" text="Help">
