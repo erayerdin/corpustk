@@ -6,7 +6,6 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.*;
-import java.util.Arrays;
 
 @Log4j2
 @ToString(exclude = {"graphemes"})
@@ -27,10 +26,20 @@ public class GraphSet extends com.erayerdin.linglib.graphology.GraphSet implemen
     }
 
     public boolean equals(GraphSet gset) {
+        boolean r = true;
+
         boolean titleEquals = this.getTitle().equals(gset.getTitle());
-        boolean graphemesEquals = (this.getGraphemes().length == gset.getGraphemes().length)
-                && (Arrays.asList(this.getGraphemes()).containsAll(Arrays.asList(gset.getGraphemes()))); // TODO find an efficient way
-        boolean r = titleEquals && graphemesEquals;
+        if (!titleEquals) return false;
+
+        boolean graphemeLengthEquals = this.getGraphemes().length == gset.getGraphemes().length;
+        if (!graphemeLengthEquals) return false;
+
+        for (int i = 0 ; i < this.getGraphemes().length ; i++) {
+            Grapheme g1 = this.getGraphemes()[i];
+            Grapheme g2 = this.getGraphemes()[i];
+
+            if (!(g1.getLower() == g2.getLower() && g1.getUpper() == g2.getUpper() && g1.getType() == g2.getType())) return false;
+        }
 
         return r;
     }

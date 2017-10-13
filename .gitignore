@@ -46,3 +46,4 @@ fabric.properties
 
 debug.log
 temp/
+nohup.out
