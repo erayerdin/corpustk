@@ -35,6 +35,9 @@
             <manifest>
               <mainClass>com.erayerdin.corpustk.App</mainClass>
             </manifest>
+            <manifestEntries>
+              <Class-Path>.</Class-Path>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
@@ -52,6 +55,17 @@
             <!--</manifest>-->
           <!--</archive>-->
         <!--</configuration>-->
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>com.erayerdin.corpustk.App</mainClass>
+            </manifest>
+            <manifestEntries>
+              <Class-Path>.</Class-Path>
+            </manifestEntries>
+          </archive>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -79,6 +93,18 @@
       <groupId>com.erayerdin</groupId>
       <artifactId>linglib</artifactId>
       <version>0.2.4-alpha</version>
+    </dependency>
+
+    <!--Native Access Libraries-->
+    <dependency>
+      <groupId>com.sun.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>3.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>4.5.0</version>
     </dependency>
 
     <!--Logging Library-->

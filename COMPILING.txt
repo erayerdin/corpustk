@@ -1,0 +1,7 @@
+###############
+# Compilation #
+###############
+
+# Windows #
+
+Launch launch4j.sh from Linux to compile for Windows (*inser evil laught here*).

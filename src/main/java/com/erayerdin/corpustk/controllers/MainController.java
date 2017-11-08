@@ -5,12 +5,16 @@ import com.erayerdin.corpustk.core.listcells.TextListCell;
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.corpus.Corpus;
 import com.erayerdin.corpustk.models.corpus.GramType;
+import com.erayerdin.corpustk.models.corpus.QueryResult;
 import com.erayerdin.corpustk.models.corpus.Text;
 import com.erayerdin.corpustk.views.*;
 import com.erayerdin.linglib.corpus.QueryType;
+import com.erayerdin.linglib.corpus.Token;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -79,6 +83,9 @@ public class MainController extends Controller {
     private TextField ngramQueryTextField;
 
     @FXML
+    private TextField ngramDepthTextField;
+
+    @FXML
     private ChoiceBox<QueryType> ngramTypeChoiceBox;
 
     @FXML
@@ -91,7 +98,16 @@ public class MainController extends Controller {
     private Button resetNgramButton;
 
     @FXML
-    private TableView<?> ngramsTableView;
+    private TableView<QueryResult> ngramsTableView;
+
+    @FXML
+    private TableColumn<String, String> queryTableQueryColumn;
+
+    @FXML
+    private TableColumn<Token[], String> queryTableResultColumn;
+
+    @FXML
+    private TableColumn<Integer, String> queryTableTotalColumn;
 
     @FXML
     private ListView<Text> textsListView;
@@ -244,7 +260,31 @@ public class MainController extends Controller {
 
     @FXML
     void searchNgrams(ActionEvent event) {
+        String queryString = this.ngramQueryTextField.getText().trim();
+        GramType gramType = this.ngramQueryTypeChoiceBox.getSelectionModel().getSelectedItem();
+        int depth = Integer.parseInt(this.ngramDepthTextField.getText());
 
+        log.debug(String.format("Making queries with: %s, %s", queryString, gramType.toString()));
+
+        log.debug("Clearing items of table...");
+        this.ngramsTableView.getItems().clear();
+
+        Text[] texts = textFilteredList.toArray(new Text[textFilteredList.size()]);
+
+        ObservableList<QueryResult> queryResults = null;
+
+        switch (gramType) {
+            case PREGRAM:
+                queryResults = Text.pregrams(texts, getCorpusInstance().getGraphSet(), depth, queryString);
+                break;
+            case POSTGRAM:
+                queryResults = Text.postgrams(texts, getCorpusInstance().getGraphSet(), depth, queryString);
+                break;
+            default:
+                break;
+        }
+
+        this.ngramsTableView.getItems().addAll(queryResults);
     }
 
     private static ObjectProperty<Corpus> corpusInstance = new SimpleObjectProperty<>(null);
@@ -260,9 +300,12 @@ public class MainController extends Controller {
         this.initializeFilteredList();
         this.initializeTexts();
         this.initializeHotkeys();
-
-        // ChoiceBox enums
         this.initializeChoiceBoxes();
+        this.initializeQueryTableView();
+
+        // Ngram Depth Initializer
+        this.ngramDepthFieldListener();
+
 
         // Close handler
         // TODO implement close request later
@@ -399,6 +442,53 @@ public class MainController extends Controller {
         this.newCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
         this.openCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
         this.saveCorpusPackageMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
+    }
+
+    /**
+     * Initializes table view for queries.
+     */
+    private void initializeQueryTableView() {
+        log.debug("Initializing query table view...");
+
+        this.queryTableQueryColumn.setCellValueFactory(value -> new SimpleStringProperty(value.getValue()));
+        this.queryTableResultColumn.setCellValueFactory(value -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+
+            Token[] tokens = value.getValue();
+
+            for (int i = 0 ; i < tokens.length ; i++) {
+                Token t = tokens[i];
+
+                if (i == tokens.length-1) {
+                    sb.append(t.lowerize());
+                } else {
+                    sb.append(t.lowerize()+", ");
+                }
+            }
+
+            return new SimpleStringProperty(sb.toString());
+        });
+        this.queryTableTotalColumn.setCellValueFactory(value -> new SimpleStringProperty(Integer.toString(value.getValue())));
+    }
+
+    /**
+     * Initializes ngram depth field.
+     */
+    private void ngramDepthFieldListener() {
+        this.ngramDepthTextField.setText("1");
+
+        log.debug("Adding ngram depth field listener...");
+        this.ngramDepthTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            Integer val = null;
+            try {
+                val = Integer.parseInt(newValue);
+                log.debug("Ngram depth is valid.");
+            } catch (NumberFormatException e) {
+                log.warn("Ngram depth is invalid. Setting to 1.");
+                this.ngramDepthTextField.setText("1");
+            }
+        });
     }
 
     /**

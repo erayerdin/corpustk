@@ -1,5 +1,4 @@
 package com.erayerdin.corpustk.models.corpus;
-;
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
 import com.erayerdin.linglib.corpus.Token;
@@ -11,7 +10,10 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+
+;
 
 @Log4j2
 public class Text extends com.erayerdin.linglib.corpus.Text implements Model {
@@ -43,6 +45,75 @@ public class Text extends com.erayerdin.linglib.corpus.Text implements Model {
     protected void pretokenize(GraphSet graphSet) {
         log.debug(String.format("Pretokenizing %d...", this.hashCode()));
         this.tokens = this.tokenize(graphSet);
+    }
+
+    /**
+     * Gets pregram from many texts.
+     *
+     * @param texts
+     * @param gset
+     * @param depth
+     * @param s
+     * @return
+     */
+    public static ObservableList<QueryResult> pregrams(Text[] texts, GraphSet gset, int depth, String s) {
+        log.debug("Getting pregrams of all texts by string query...");
+
+        ArrayList<Token[]> tokens = new ArrayList<>();
+
+        for (Text t : texts) {
+            Token[][] results = t.pregrams(gset, depth, s).getResults();
+            Arrays.stream(results).forEach(section -> tokens.add(section));
+        }
+
+        ObservableList<QueryResult> results = FXCollections.observableArrayList();
+
+        section: for (Token[] section : tokens) {
+            queryResult: for (QueryResult result : results) {
+                if (result.equals(section)) {
+                    result.incrementSize();
+                    break queryResult;
+                }
+            }
+
+            QueryResult qr = new QueryResult(s, section, GramType.PREGRAM);
+            results.add(qr);
+        }
+
+        return results;
+    }
+
+    /**
+     * Gets postgram from many texts.
+     *
+     * @param texts
+     * @param depth
+     * @param s
+     * @return
+     */
+    public static ObservableList<QueryResult> postgrams(Text[] texts, GraphSet gset, int depth, String s) {
+        log.debug("Getting postgrams of all texts by string query...");
+
+        ArrayList<Token[]> tokens = new ArrayList<>();
+
+        for (Text t : texts) {
+            Token[][] results = t.postgrams(gset, depth, s).getResults();
+            Arrays.stream(results).forEach(section -> tokens.add(section));
+        }
+
+        ObservableList<QueryResult> results = FXCollections.observableArrayList();
+
+        section: for (Token[] section : tokens) {
+            queryResult: for (QueryResult result : results) {
+                result.incrementSize();
+                break queryResult;
+            }
+
+            QueryResult qr = new QueryResult(s, section, GramType.POSTGRAM);
+            results.add(qr);
+        }
+
+        return results;
     }
 
     @Override
