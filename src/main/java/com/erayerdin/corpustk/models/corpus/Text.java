@@ -1,17 +1,21 @@
 package com.erayerdin.corpustk.models.corpus;
+
 import com.erayerdin.corpustk.models.Model;
 import com.erayerdin.corpustk.models.graphology.GraphSet;
+import com.erayerdin.linglib.corpus.Query;
 import com.erayerdin.linglib.corpus.Token;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 ;
 
@@ -56,28 +60,26 @@ public class Text extends com.erayerdin.linglib.corpus.Text implements Model {
      * @param s
      * @return
      */
-    public static ObservableList<QueryResult> pregrams(Text[] texts, GraphSet gset, int depth, String s) {
-        log.debug("Getting pregrams of all texts by string query...");
+    public static List<QueryResult> pregrams(FilteredList<Text> texts, GraphSet gset, int depth, String s) {
+        log.debug(String.format("Getting pregrams of all texts by string query <%s>...", s));
+        List<QueryResult> results = new ArrayList<>();
 
-        ArrayList<Token[]> tokens = new ArrayList<>();
+        for (Text text : texts) {
+            Query pregramsQuery = text.pregrams(gset, depth, s);
+            Token[][] pregramsTokens = pregramsQuery.getResults();
 
-        for (Text t : texts) {
-            Token[][] results = t.pregrams(gset, depth, s).getResults();
-            Arrays.stream(results).forEach(section -> tokens.add(section));
-        }
-
-        ObservableList<QueryResult> results = FXCollections.observableArrayList();
-
-        section: for (Token[] section : tokens) {
-            queryResult: for (QueryResult result : results) {
-                if (result.equals(section)) {
-                    result.incrementSize();
-                    break queryResult;
+            queryResult: for (Token[] section : pregramsTokens) {
+                for (QueryResult mainQr : results) {
+                    if (mainQr.equals(section)) {
+                        mainQr.incrementSize();
+                        continue queryResult;
+                    }
                 }
-            }
 
-            QueryResult qr = new QueryResult(s, section, GramType.PREGRAM);
-            results.add(qr);
+                QueryResult qr = new QueryResult(s, section, GramType.PREGRAM, depth);
+
+                results.add(qr);
+            }
         }
 
         return results;
@@ -91,26 +93,26 @@ public class Text extends com.erayerdin.linglib.corpus.Text implements Model {
      * @param s
      * @return
      */
-    public static ObservableList<QueryResult> postgrams(Text[] texts, GraphSet gset, int depth, String s) {
-        log.debug("Getting postgrams of all texts by string query...");
+    public static List<QueryResult> postgrams(FilteredList<Text> texts, GraphSet gset, int depth, String s) {
+        log.debug(String.format("Getting postgrams of all texts by string query <%s>...", s));
+        List<QueryResult> results = new ArrayList<>();
 
-        ArrayList<Token[]> tokens = new ArrayList<>();
+        for (Text text : texts) {
+            Query postgramQueries = text.postgrams(gset, depth, s);
+            Token[][] postgramTokens = postgramQueries.getResults();
 
-        for (Text t : texts) {
-            Token[][] results = t.postgrams(gset, depth, s).getResults();
-            Arrays.stream(results).forEach(section -> tokens.add(section));
-        }
+            queryResult: for (Token[] section : postgramTokens) {
+                for (QueryResult mainQr : results) {
+                    if (mainQr.equals(section)) {
+                        mainQr.incrementSize();
+                        continue queryResult;
+                    }
+                }
 
-        ObservableList<QueryResult> results = FXCollections.observableArrayList();
+                QueryResult qr = new QueryResult(s, section, GramType.PREGRAM, depth);
 
-        section: for (Token[] section : tokens) {
-            queryResult: for (QueryResult result : results) {
-                result.incrementSize();
-                break queryResult;
+                results.add(qr);
             }
-
-            QueryResult qr = new QueryResult(s, section, GramType.POSTGRAM);
-            results.add(qr);
         }
 
         return results;

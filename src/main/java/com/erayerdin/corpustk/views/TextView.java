@@ -12,6 +12,8 @@ public class TextView extends View {
     public TextView() {
         this.setViewName("TextScreen");
         this.setDecorated(true);
+        this.setModal(true);
+        this.setResizable(false);
     }
 
     @Override

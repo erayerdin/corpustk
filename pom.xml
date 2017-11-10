@@ -4,7 +4,7 @@
 
   <groupId>com.erayerdin</groupId>
   <artifactId>corpustk</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
   <build>
     <plugins>
       <plugin>
@@ -96,16 +96,16 @@
     </dependency>
 
     <!--Native Access Libraries-->
-    <dependency>
-      <groupId>com.sun.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>3.0.9</version>
-    </dependency>
-    <dependency>
-      <groupId>net.java.dev.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>4.5.0</version>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>com.sun.jna</groupId>-->
+      <!--<artifactId>jna</artifactId>-->
+      <!--<version>3.0.9</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>net.java.dev.jna</groupId>-->
+      <!--<artifactId>jna</artifactId>-->
+      <!--<version>4.5.0</version>-->
+    <!--</dependency>-->
 
     <!--Logging Library-->
     <dependency>
@@ -126,11 +126,11 @@
       <version>1.16.18</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>net.harawata</groupId>
-      <artifactId>appdirs</artifactId>
-      <version>1.0.0</version>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>net.harawata</groupId>-->
+      <!--<artifactId>appdirs</artifactId>-->
+      <!--<version>1.0.0</version>-->
+    <!--</dependency>-->
 
     <!--Testing Library-->
     <dependency>

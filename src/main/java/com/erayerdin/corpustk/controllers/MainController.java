@@ -14,7 +14,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -31,6 +30,7 @@ import lombok.extern.log4j.Log4j2;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -101,13 +101,13 @@ public class MainController extends Controller {
     private TableView<QueryResult> ngramsTableView;
 
     @FXML
-    private TableColumn<String, String> queryTableQueryColumn;
+    private TableColumn<QueryResult, String> queryTableQueryColumn;
 
     @FXML
-    private TableColumn<Token[], String> queryTableResultColumn;
+    private TableColumn<QueryResult, String> queryTableResultColumn;
 
     @FXML
-    private TableColumn<Integer, String> queryTableTotalColumn;
+    private TableColumn<QueryResult, String> queryTableTotalColumn;
 
     @FXML
     private ListView<Text> textsListView;
@@ -260,31 +260,28 @@ public class MainController extends Controller {
 
     @FXML
     void searchNgrams(ActionEvent event) {
-        String queryString = this.ngramQueryTextField.getText().trim();
-        GramType gramType = this.ngramQueryTypeChoiceBox.getSelectionModel().getSelectedItem();
+        String query = this.ngramQueryTextField.getText();
         int depth = Integer.parseInt(this.ngramDepthTextField.getText());
+        GramType gType = this.ngramQueryTypeChoiceBox.getValue();
+        QueryType qType = this.ngramTypeChoiceBox.getValue();
 
-        log.debug(String.format("Making queries with: %s, %s", queryString, gramType.toString()));
+        log.debug(String.format("Making queries -- GramType: %s | QueryType: %s | Depth: %d", gType.toString(), qType.toString(), depth));
 
-        log.debug("Clearing items of table...");
         this.ngramsTableView.getItems().clear();
 
-        Text[] texts = textFilteredList.toArray(new Text[textFilteredList.size()]);
+        List<QueryResult> results = new ArrayList<>();
 
-        ObservableList<QueryResult> queryResults = null;
-
-        switch (gramType) {
+        switch (gType) {
             case PREGRAM:
-                queryResults = Text.pregrams(texts, getCorpusInstance().getGraphSet(), depth, queryString);
+                results = Text.pregrams(this.textFilteredList, getCorpusInstance().getGraphSet(), depth, query);
                 break;
             case POSTGRAM:
-                queryResults = Text.postgrams(texts, getCorpusInstance().getGraphSet(), depth, queryString);
-                break;
-            default:
+                results = Text.postgrams(this.textFilteredList, getCorpusInstance().getGraphSet(), depth, query);
                 break;
         }
 
-        this.ngramsTableView.getItems().addAll(queryResults);
+        this.ngramsTableView.getItems().addAll(results);
+        this.ngramsTableView.refresh();
     }
 
     private static ObjectProperty<Corpus> corpusInstance = new SimpleObjectProperty<>(null);
@@ -359,6 +356,7 @@ public class MainController extends Controller {
 
         this.ngramQueryTextField.setDisable(disabled);
         this.ngramTypeChoiceBox.setDisable(disabled);
+        this.ngramDepthTextField.setDisable(disabled);
         this.ngramQueryTypeChoiceBox.setDisable(disabled);
         this.ngramSearchButton.setDisable(disabled);
         this.resetNgramButton.setDisable(disabled);
@@ -450,26 +448,35 @@ public class MainController extends Controller {
     private void initializeQueryTableView() {
         log.debug("Initializing query table view...");
 
-        this.queryTableQueryColumn.setCellValueFactory(value -> new SimpleStringProperty(value.getValue()));
+        this.queryTableQueryColumn.setCellValueFactory(value -> new SimpleStringProperty(value.getValue().getQuery()));
         this.queryTableResultColumn.setCellValueFactory(value -> {
             StringBuilder sb = new StringBuilder();
             sb.append("[");
 
-            Token[] tokens = value.getValue();
+            Token[] tokens = value.getValue().getTokens();
 
             for (int i = 0 ; i < tokens.length ; i++) {
                 Token t = tokens[i];
 
+                if (t == null) {
+                    continue;
+                }
+
                 if (i == tokens.length-1) {
-                    sb.append(t.lowerize());
+                    sb.append(t.lowerize()+"]");
                 } else {
                     sb.append(t.lowerize()+", ");
                 }
             }
 
-            return new SimpleStringProperty(sb.toString());
+            String repr = sb.toString();
+
+            if (repr.equals("["))
+                repr = "";
+
+            return new SimpleStringProperty(repr);
         });
-        this.queryTableTotalColumn.setCellValueFactory(value -> new SimpleStringProperty(Integer.toString(value.getValue())));
+        this.queryTableTotalColumn.setCellValueFactory(value -> new SimpleStringProperty(Integer.toString(value.getValue().getSize())));
     }
 
     /**

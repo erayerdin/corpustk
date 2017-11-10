@@ -32,18 +32,20 @@ public class QueryResult {
     }
 
     public boolean equals(Token[] tokens) {
-        boolean r = true;
-
         if (tokens.length != this.getTokens().length) return false;
 
         for (int i = 0 ; i < tokens.length ; i++) {
             Token outerToken = tokens[i];
             Token innerToken = this.getTokens()[i];
 
-            if (innerToken.lowerize() != outerToken.lowerize() && innerToken.capitalize() != outerToken.capitalize())
+            if (innerToken != null && outerToken != null) {
+                if (!innerToken.lowerize().equals(outerToken.lowerize()) && !innerToken.capitalize().equals(outerToken.capitalize()))
+                    return false;
+            } else if (innerToken != outerToken) {
                 return false;
+            }
         }
 
-        return r;
+        return true;
     }
 }
