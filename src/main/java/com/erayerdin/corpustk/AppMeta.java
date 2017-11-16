@@ -25,7 +25,7 @@ public class AppMeta {
 
     @Getter private final static int majorVersion = 0;
     @Getter private final static int minorVersion = 2;
-    @Getter private final static int patchVersion = 0;
+    @Getter private final static int patchVersion = 1;
     @Getter private final static Status versionStatus = Status.SNAPSHOT;
 
     @Getter private static HashMap<String, String[]> contributors = initContributors();

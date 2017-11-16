@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -77,7 +78,7 @@ public class Utils {
     public static String readTextFile(File path) {
         List<String> lines = null;
         try {
-            lines = Files.readAllLines(Paths.get(path.getAbsolutePath()));
+            lines = Files.readAllLines(Paths.get(path.getAbsolutePath()), StandardCharsets.UTF_16);
         } catch (IOException e) {
             log.error("An error occured while reading text file...", e);
             return null;
