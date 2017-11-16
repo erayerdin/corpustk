@@ -95,6 +95,13 @@
       <version>0.2.4-alpha</version>
     </dependency>
 
+    <!--FX Libraries-->
+    <dependency>
+      <groupId>org.controlsfx</groupId>
+      <artifactId>controlsfx</artifactId>
+      <version>8.40.14</version>
+    </dependency>
+
     <!--Native Access Libraries-->
     <!--<dependency>-->
       <!--<groupId>com.sun.jna</groupId>-->
